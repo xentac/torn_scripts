@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         No dark text in forum
+// @name         torn.com No dark text in forum
 // @namespace    xentac
 // @version      20250303.1
 // @description  No Dark Text - Removes all dark text in the forum, so it's readable in dark mode
