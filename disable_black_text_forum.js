@@ -5,6 +5,7 @@
 // @description  torn.com No Dark Text - Removes all dark text in the forum, so it's readable in dark mode
 // @author       xentac [3354782]
 // @match        *.torn.com/forums.php*
+// @license MIT
 // ==/UserScript==
 
 "use strict";
