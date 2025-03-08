@@ -58,18 +58,35 @@
 `);
 
   setInterval(() => {
-    const warDIV = document.querySelector("DIV.faction-war");
-    if (warDIV) replaceEnemyInfo(warDIV);
+    const node = document.querySelector("DIV.faction-war");
+    if (node) {
+      replaceInfo(
+        node,
+        node.querySelectorAll("LI.enemy"),
+        node.querySelector("LI.enemy").closest("UL.members-list"),
+      );
+      replaceInfo(
+        node,
+        node.querySelectorAll("LI.your"),
+        node.querySelector("LI.your").closest("UL.members-list"),
+      );
+    }
   }, 15000);
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.classList && node.classList.contains("faction-war")) {
-          replaceEnemyInfo(node);
-        }
-        if (node.classList && node.classList.contains("okay")) {
-          console.log("They are okay");
+          replaceInfo(
+            node,
+            node.querySelectorAll("LI.enemy"),
+            node.querySelector("LI.enemy").closest("UL.members-list"),
+          );
+          replaceInfo(
+            node,
+            node.querySelectorAll("LI.your"),
+            node.querySelector("LI.your").closest("UL.members-list"),
+          );
         }
       }
     }
@@ -87,12 +104,11 @@
 
   const hospital_timers = new Map();
 
-  async function replaceEnemyInfo(node) {
+  async function replaceInfo(node, enemy_LIs, enemy_UL) {
     hospital_timers.forEach((k, v) => {
       clearInterval(v);
       hospital_timers[k] = undefined;
     });
-    const enemy_LIs = node.querySelectorAll("LI.enemy");
     const enemy_faction_id = enemy_LIs[0]
       .querySelector(`A[href^='/factions.php']`)
       .href.split("ID=")[1];
@@ -143,6 +159,10 @@
             hospital_timers[enemy_id] = null;
           }
           hospital_timers[enemy_id] = setInterval(() => {
+            if (li.classList.contains("okay")) {
+              li.classList.remove("warstuff_highlight");
+              return;
+            }
             const hosp_time_remaining = Math.round(
               enemy_status.until - new Date().getTime() / 1000,
             );
@@ -169,9 +189,6 @@
       }
     });
     if (sort_enemies) {
-      const enemy_UL = document
-        .querySelector("LI.enemy")
-        .closest("UL.members-list");
       Array.from(enemy_LIs)
         .sort((a, b) => {
           return (
