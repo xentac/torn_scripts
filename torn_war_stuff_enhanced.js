@@ -9,6 +9,7 @@
 // @grant        GM_addStyle
 // ==/UserScript==
 
+// TODO: Make a preferences page where you can enter your API key and choose absolute times or timers
 const APIKEY = "API_KEY_HERE";
 const sort_enemies = true;
 
@@ -33,10 +34,23 @@ const observer = new MutationObserver((mutations) => {
   }
 });
 
+function pad_with_zeros(n) {
+  if (n < 10) {
+    return "0" + n;
+  }
+  return n;
+}
+
 const wrapper = document.body; //.querySelector('#mainContainer')
 observer.observe(wrapper, { subtree: true, childList: true });
 
+const hospital_timers = new Map();
+
 async function replaceEnemyInfo(node) {
+  hospital_timers.forEach((k, v) => {
+    clearInterval(v);
+    hospital_timers[k] = undefined;
+  });
   const enemy_LIs = node.querySelectorAll("LI.enemy");
   const enemy_faction_id = enemy_LIs[0]
     .querySelector(`A[href^='/factions.php']`)
@@ -80,21 +94,30 @@ async function replaceEnemyInfo(node) {
         break;
       case "Hospital":
         li.setAttribute("data-sortA", "1");
-        const discharge_time = new Date(enemy_status.until * 1000);
-        const h = discharge_time.getUTCHours().toString().padStart(2, "0");
-        const m = discharge_time.getUTCMinutes().toString().padStart(2, "0");
-        const s = discharge_time.getUTCSeconds().toString().padStart(2, "0");
-        const time_string = `${h}:${m}:${s}`;
-        const hosp_time_remaining = Math.round(
-          enemy_status.until - new Date().getTime() / 1000,
-        );
-        status_DIV.innerText = time_string;
-        li.classList.remove("warstuff_highlight");
-        //li.style.backgroundColor = 'transparent'
-        if (hosp_time_remaining < 300) {
-          //status_DIV.innerText = time_string//hosp_time_remaining + 's'
-          li.classList.add("warstuff_highlight");
+        if (hospital_timers[enemy_id]) {
+          clearInterval(hospital_timers[enemy_id]);
+          hospital_timers[enemy_id] = null;
         }
+        hospital_timers[enemy_id] = setInterval(() => {
+          const hosp_time_remaining = Math.round(
+            enemy_status.until - new Date().getTime() / 1000,
+          );
+          if (hosp_time_remaining <= 0) {
+            li.classList.remove("warstuff_highlight");
+            return;
+          }
+          const s = Math.floor(hosp_time_remaining % 60);
+          const m = Math.floor((hosp_time_remaining / 60) % 60);
+          const h = Math.floor(hosp_time_remaining / 60 / 60);
+          const time_string = `${pad_with_zeros(h)}:${pad_with_zeros(m)}:${pad_with_zeros(s)}`;
+          status_DIV.innerText = time_string;
+
+          if (hosp_time_remaining < 300) {
+            li.classList.add("warstuff_highlight");
+          } else {
+            li.classList.remove("warstuff_highlight");
+          }
+        }, 250);
         break;
       default:
         li.setAttribute("data-sortA", "0");
