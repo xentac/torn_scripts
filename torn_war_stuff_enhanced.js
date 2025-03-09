@@ -13,7 +13,7 @@
 // ==/UserScript==
 
 (async function () {
-  "use strict";
+  ("use strict");
 
   let apiKey =
     localStorage.getItem("xentac-torn_war_stuff_enhanced-apikey") ??
@@ -56,6 +56,12 @@
   GM_addStyle(`
 .warstuff_highlight {
   background-color: #afa5 !important;
+}
+`);
+
+  GM_addStyle(`
+.warstuff_traveling .status {
+  color: #F287FF !important;
 }
 `);
 
@@ -160,9 +166,15 @@
             clearInterval(hospital_timers[enemy_id]);
             hospital_timers[enemy_id] = null;
           }
+          if (enemy_status.description.includes("In a ")) {
+            li.classList.add("warstuff_traveling");
+          } else {
+            li.classList.remove("warstuff_traveling");
+          }
           hospital_timers[enemy_id] = setInterval(() => {
             if (li.classList.contains("okay")) {
               li.classList.remove("warstuff_highlight");
+              status_DIV.innerText = "Okay";
               return;
             }
             const hosp_time_remaining = Math.round(
