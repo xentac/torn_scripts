@@ -8,6 +8,8 @@
 // @match       *.torn.com/factions.php*
 // @grant        GM_addStyle
 // @grant        GM_registerMenuCommand
+// @grant        GM_xmlhttpRequest
+// @connect      api.torn.com
 // ==/UserScript==
 
 (async function () {
