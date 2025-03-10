@@ -172,7 +172,7 @@
             li.classList.remove("warstuff_traveling");
           }
           hospital_timers[enemy_id] = setInterval(() => {
-            if (li.classList.contains("okay")) {
+            if (status_DIV.classList.contains("okay")) {
               li.classList.remove("warstuff_highlight");
               status_DIV.innerText = "Okay";
               return;
