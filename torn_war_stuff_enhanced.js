@@ -111,12 +111,28 @@
   observer.observe(wrapper, { subtree: true, childList: true });
 
   const hospital_timers = new Map();
+  const hospital_timers_promises = new Map();
+
   function clear_hospital_timer(enemy_id) {
     if (!hospital_timers.get(enemy_id)) {
       return;
     }
     clearInterval(hospital_timers.get(enemy_id));
     hospital_timers.delete(enemy_id);
+  }
+  function add_hospital_timer(enemy_id, f) {
+    let p = hospital_timers_promises.get(enemy_id);
+    if (p) {
+      return p;
+    }
+    hospital_timers_promises.set(
+      enemy_id,
+      new Promise(() => {
+        hospital_timers[enemy_id] = setInterval(f, 250);
+        hospital_timers_promises.delete(enemy_id);
+      }),
+    );
+    return hospital_timers_promises.get(enemy_id);
   }
 
   async function replaceInfo(node, enemy_LIs, enemy_UL) {
@@ -174,7 +190,7 @@
             li.classList.remove("warstuff_traveling");
           }
           clear_hospital_timer(enemy_id);
-          hospital_timers[enemy_id] = setInterval(() => {
+          add_hospital_timer(enemy_id, () => {
             if (status_DIV.classList.contains("okay")) {
               li.classList.remove("warstuff_highlight");
               clear_hospital_timer(enemy_id);
@@ -189,6 +205,7 @@
             );
             if (hosp_time_remaining <= 0) {
               li.classList.remove("warstuff_highlight");
+              clear_hospital_timer(enemy_id);
               return;
             }
             const s = Math.floor(hosp_time_remaining % 60);
@@ -202,7 +219,7 @@
             } else {
               li.classList.remove("warstuff_highlight");
             }
-          }, 250);
+          }).finally(() => {});
           break;
         default:
           li.setAttribute("data-sortA", "0");
