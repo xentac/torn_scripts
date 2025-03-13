@@ -69,12 +69,10 @@
     const node = document.querySelector("DIV.faction-war");
     if (node) {
       replaceInfo(
-        node,
         node.querySelectorAll("LI.enemy"),
         node.querySelector("LI.enemy").closest("UL.members-list"),
       );
       replaceInfo(
-        node,
         node.querySelectorAll("LI.your"),
         node.querySelector("LI.your").closest("UL.members-list"),
       );
@@ -86,12 +84,10 @@
       for (const node of mutation.addedNodes) {
         if (node.classList && node.classList.contains("faction-war")) {
           replaceInfo(
-            node,
             node.querySelectorAll("LI.enemy"),
             node.querySelector("LI.enemy").closest("UL.members-list"),
           );
           replaceInfo(
-            node,
             node.querySelectorAll("LI.your"),
             node.querySelector("LI.your").closest("UL.members-list"),
           );
@@ -135,8 +131,8 @@
     return hospital_timers_promises.get(enemy_id);
   }
 
-  async function replaceInfo(node, enemy_LIs, enemy_UL) {
-    hospital_timers.forEach((k, v) => {
+  async function replaceInfo(enemy_LIs, enemy_UL) {
+    hospital_timers.forEach((k, _) => {
       clear_hospital_timer(k);
     });
     const enemy_faction_id = enemy_LIs[0]
