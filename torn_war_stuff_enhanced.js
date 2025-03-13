@@ -111,11 +111,17 @@
   observer.observe(wrapper, { subtree: true, childList: true });
 
   const hospital_timers = new Map();
+  function clear_hospital_timer(enemy_id) {
+    if (!hospital_timers.get(enemy_id)) {
+      return;
+    }
+    clearInterval(hospital_timers.get(enemy_id));
+    hospital_timers.delete(enemy_id);
+  }
 
   async function replaceInfo(node, enemy_LIs, enemy_UL) {
     hospital_timers.forEach((k, v) => {
-      clearInterval(v);
-      hospital_timers[k] = undefined;
+      clear_hospital_timer(k);
     });
     const enemy_faction_id = enemy_LIs[0]
       .querySelector(`A[href^='/factions.php']`)
@@ -162,19 +168,20 @@
           break;
         case "Hospital":
           li.setAttribute("data-sortA", "1");
-          if (hospital_timers[enemy_id]) {
-            clearInterval(hospital_timers[enemy_id]);
-            hospital_timers[enemy_id] = null;
-          }
           if (enemy_status.description.includes("In a ")) {
             li.classList.add("warstuff_traveling");
           } else {
             li.classList.remove("warstuff_traveling");
           }
+          clear_hospital_timer(enemy_id);
           hospital_timers[enemy_id] = setInterval(() => {
             if (status_DIV.classList.contains("okay")) {
               li.classList.remove("warstuff_highlight");
-              status_DIV.innerText = "Okay";
+              clear_hospital_timer(enemy_id);
+              return;
+            } else if (status_DIV.classList.contains("traveling")) {
+              li.classList.remove("warstuff_highlight");
+              clear_hospital_timer(enemy_id);
               return;
             }
             const hosp_time_remaining = Math.round(
