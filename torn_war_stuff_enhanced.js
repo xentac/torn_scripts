@@ -121,7 +121,17 @@
   const member_lis = new Map();
   let watcher = null;
 
+  let last_request = null;
+  const MIN_TIME_SINCE_LAST_REQUEST = 5000;
+
   async function update_statuses() {
+    if (
+      last_request &&
+      new Date() - last_request < MIN_TIME_SINCE_LAST_REQUEST
+    ) {
+      return;
+    }
+    last_request = new Date();
     const faction_ids = get_faction_ids();
     for (let i = 0; i < faction_ids.length; i++) {
       update_status(faction_ids[i]);
@@ -129,13 +139,21 @@
   }
 
   async function update_status(faction_id) {
+    let error = false;
     const status = await fetch(
       `https://api.torn.com/faction/${faction_id}?selections=basic&key=${apiKey}`,
     )
       .then((r) => r.json())
       .catch((m) => {
         console.error("[TornWarStuffEnhanced] ", m);
+        error = true;
       });
+    if (error) {
+      return;
+    }
+    if (!status.members) {
+      return;
+    }
     for (const [k, v] of Object.entries(status.members)) {
       v.status.description = v.status.description
         .replace("South Africa", "SA")
