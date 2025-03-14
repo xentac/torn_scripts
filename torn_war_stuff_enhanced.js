@@ -67,7 +67,7 @@
 
   function get_faction_ids() {
     const nodes = document.querySelectorAll("UL.members-list");
-    if (!nodes) {
+    if (nodes.length != 2) {
       return [];
     }
     const enemy_faction_id = nodes[0]
@@ -85,6 +85,12 @@
 
   setInterval(() => {
     update_statuses();
+
+    // Backup in case the observer doesn't work
+    if (watcher == null) {
+      extract_all_member_lis();
+      create_watcher();
+    }
   }, 15000);
 
   const observer = new MutationObserver((mutations) => {
@@ -95,12 +101,7 @@
 
           update_statuses();
           clear_watchers();
-          extract_member_lis(
-            node.querySelector("LI.enemy").closest("UL.members-list"),
-          );
-          extract_member_lis(
-            node.querySelector("LI.your").closest("UL.members-list"),
-          );
+          extract_all_member_lis();
           create_watcher();
         }
       }
@@ -163,6 +164,12 @@
         .replace("Switzerland", "Switz");
       member_status.set(k, v);
     }
+  }
+
+  function extract_all_member_lis() {
+    get_member_lists().forEach((ul) => {
+      extract_member_lis(ul);
+    });
   }
 
   function extract_member_lis(ul) {
