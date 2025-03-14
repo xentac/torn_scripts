@@ -216,7 +216,13 @@
             }
             break;
           case "Hospital":
-            if (!status_DIV.classList.contains("hospital")) {
+          case "Jail":
+            if (
+              !(
+                status_DIV.classList.contains("hospital") ||
+                status_DIV.classList.contains("jail")
+              )
+            ) {
               li.classList.remove("warstuff_highlight");
               li.classList.remove("warstuff_traveling");
               needsupdate = true;
@@ -242,7 +248,12 @@
             const time_string = `${pad_with_zeros(h)}:${pad_with_zeros(m)}:${pad_with_zeros(s)}`;
 
             // See if the DOM changed between the beginning and now
-            if (!status_DIV.classList.contains("hospital")) {
+            if (
+              !(
+                status_DIV.classList.contains("hospital") ||
+                status_DIV.classList.contains("jail")
+              )
+            ) {
               li.classList.remove("warstuff_highlight");
               li.classList.remove("warstuff_traveling");
               needsupdate = true;
