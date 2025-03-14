@@ -240,7 +240,17 @@
             const m = Math.floor((hosp_time_remaining / 60) % 60);
             const h = Math.floor(hosp_time_remaining / 60 / 60);
             const time_string = `${pad_with_zeros(h)}:${pad_with_zeros(m)}:${pad_with_zeros(s)}`;
-            status_DIV.innerText = time_string;
+
+            // See if the DOM changed between the beginning and now
+            if (!status_DIV.classList.contains("hospital")) {
+              li.classList.remove("warstuff_highlight");
+              li.classList.remove("warstuff_traveling");
+              needsupdate = true;
+              break;
+            }
+            if (status_DIV.innerText != time_string) {
+              status_DIV.innerText = time_string;
+            }
 
             if (hosp_time_remaining < 300) {
               li.classList.add("warstuff_highlight");
@@ -266,16 +276,24 @@
         const nodes = get_member_lists();
         for (let i = 0; i < nodes.length; i++) {
           let lis = nodes[i].querySelectorAll("LI");
-          Array.from(lis)
-            .sort((a, b) => {
-              return (
-                a.getAttribute("data-sortA") - b.getAttribute("data-sortA") ||
-                a.getAttribute("data-until") - b.getAttribute("data-until")
-              );
-            })
-            .forEach((li) => {
+          let sorted_lis = Array.from(lis).sort((a, b) => {
+            return (
+              a.getAttribute("data-sortA") - b.getAttribute("data-sortA") ||
+              a.getAttribute("data-until") - b.getAttribute("data-until")
+            );
+          });
+          let sorted = true;
+          for (let j = 0; j < sorted_lis.length; j++) {
+            if (nodes[i].children[j] !== sorted_lis[j]) {
+              sorted = false;
+              break;
+            }
+          }
+          if (!sorted) {
+            sorted_lis.forEach((li) => {
               nodes[i].appendChild(li);
             });
+          }
         }
       }
     }, 250);
