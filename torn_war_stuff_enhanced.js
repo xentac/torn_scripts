@@ -253,12 +253,14 @@
       }
       member_lis.forEach((li, id) => {
         const state = member_status.get(id);
+        const status_DIV = li.querySelector("DIV.status");
         if (!state) {
+          // Make sure the user sees something before we've downloaded state
+          status_DIV.setAttribute(CONTENT, status_DIV.innerText);
           return;
         }
         const status = state.status;
 
-        const status_DIV = li.querySelector("DIV.status");
         li.setAttribute("data-until", status.until);
         switch (status.state) {
           case "Abroad":
@@ -269,6 +271,7 @@
                 status_DIV.classList.contains("abroad")
               )
             ) {
+              status_DIV.setAttribute(CONTENT, status_DIV.innerText);
               break;
             }
             if (status.description.includes("Traveling to ")) {
@@ -299,6 +302,7 @@
                 status_DIV.classList.contains("jail")
               )
             ) {
+              status_DIV.setAttribute(CONTENT, status_DIV.innerText);
               li.classList.remove("warstuff_highlight");
               li.classList.remove("warstuff_traveling");
               break;
@@ -322,17 +326,6 @@
             const h = Math.floor(hosp_time_remaining / 60 / 60);
             const time_string = `${pad_with_zeros(h)}:${pad_with_zeros(m)}:${pad_with_zeros(s)}`;
 
-            // See if the DOM changed between the beginning and now
-            if (
-              !(
-                status_DIV.classList.contains("hospital") ||
-                status_DIV.classList.contains("jail")
-              )
-            ) {
-              li.classList.remove("warstuff_highlight");
-              li.classList.remove("warstuff_traveling");
-              break;
-            }
             if (status_DIV.getAttribute(CONTENT) != time_string) {
               status_DIV.setAttribute(CONTENT, time_string);
             }
