@@ -91,7 +91,7 @@
       extract_all_member_lis();
       create_watcher();
     }
-  }, 15000);
+  }, 10000);
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
@@ -123,7 +123,7 @@
   let watcher = null;
 
   let last_request = null;
-  const MIN_TIME_SINCE_LAST_REQUEST = 5000;
+  const MIN_TIME_SINCE_LAST_REQUEST = 9000;
 
   async function update_statuses() {
     if (
