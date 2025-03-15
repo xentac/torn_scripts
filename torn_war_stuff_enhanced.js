@@ -184,7 +184,7 @@
   async function update_status(faction_id) {
     let error = false;
     const status = await fetch(
-      `https://api.torn.com/faction/${faction_id}?selections=basic&key=${apiKey}`,
+      `https://api.torn.com/faction/${faction_id}?selections=basic&key=${apiKey}&comment=TornWarStuffEnhanced`,
     )
       .then((r) => r.json())
       .catch((m) => {
