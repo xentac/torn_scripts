@@ -65,6 +65,8 @@
 }
 `);
 
+  let running = true;
+
   function get_faction_ids() {
     const nodes = document.querySelectorAll("UL.members-list");
     if (nodes.length != 2) {
@@ -91,7 +93,7 @@
       extract_all_member_lis();
       create_watcher();
     }
-  }, 10000);
+  }, 5000);
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
@@ -126,6 +128,9 @@
   const MIN_TIME_SINCE_LAST_REQUEST = 9000;
 
   async function update_statuses() {
+    if (!running) {
+      return;
+    }
     if (
       last_request &&
       new Date() - last_request < MIN_TIME_SINCE_LAST_REQUEST
@@ -135,7 +140,9 @@
     last_request = new Date();
     const faction_ids = get_faction_ids();
     for (let i = 0; i < faction_ids.length; i++) {
-      update_status(faction_ids[i]);
+      if (!update_status(faction_ids[i])) {
+        return;
+      }
     }
   }
 
@@ -150,10 +157,34 @@
         error = true;
       });
     if (error) {
-      return;
+      return true;
+    }
+    if (status.error) {
+      console.log(
+        "[TornWarStuffEnhanced] Received error from torn API ",
+        status.error,
+      );
+      if (
+        [0, 1, 2, 3, 4, 6, 7, 10, 12, 13, 14, 16, 18, 21].includes(status.error)
+      ) {
+        console.log(
+          "[TornWarStuffEnhanced] Received a non-recoverable error. Giving up.",
+        );
+        running = false;
+        return false;
+      }
+      if ([5, 8, 9].includes(status.error.code)) {
+        // 5: Too many requests error code
+        // 8: IP block
+        // 9: API disabled
+        // Try again in 30 + MIN_TIME_SINCE_LAST_REQUEST seconds
+        console.log("[TornWarStuffEnhanced] Retrying in 40 seconds.");
+        last_request = new Date() + 30000;
+      }
+      return false;
     }
     if (!status.members) {
-      return;
+      return false;
     }
     for (const [k, v] of Object.entries(status.members)) {
       v.status.description = v.status.description
@@ -184,7 +215,9 @@
 
   function create_watcher() {
     watcher = setInterval(() => {
-      let needsupdate = false;
+      if (!running) {
+        return;
+      }
       member_lis.forEach((li, id) => {
         const state = member_status.get(id);
         if (!state) {
@@ -203,7 +236,6 @@
                 status_DIV.classList.contains("abroad")
               )
             ) {
-              needsupdate = true;
               break;
             }
             if (status.description.includes("Traveling to ")) {
@@ -232,7 +264,6 @@
             ) {
               li.classList.remove("warstuff_highlight");
               li.classList.remove("warstuff_traveling");
-              needsupdate = true;
               break;
             }
             li.setAttribute("data-sortA", "1");
@@ -263,7 +294,6 @@
             ) {
               li.classList.remove("warstuff_highlight");
               li.classList.remove("warstuff_traveling");
-              needsupdate = true;
               break;
             }
             if (status_DIV.innerText != time_string) {
@@ -278,18 +308,12 @@
             break;
 
           default:
-            if (!status_DIV.classList.contains("okay")) {
-              needsupdate = true;
-            }
             li.setAttribute("data-sortA", "0");
             li.classList.remove("warstuff_highlight");
             li.classList.remove("warstuff_traveling");
             break;
         }
       });
-      if (needsupdate) {
-        update_statuses();
-      }
       if (sort_enemies) {
         const nodes = get_member_lists();
         for (let i = 0; i < nodes.length; i++) {
