@@ -19,6 +19,7 @@
     localStorage.getItem("xentac-torn_war_stuff_enhanced-apikey") ??
     "###PDA-APIKEY###";
   const sort_enemies = true;
+  const CONTENT = "data-twse-content";
 
   try {
     GM_registerMenuCommand("Set Api Key", function () {
@@ -60,8 +61,40 @@
 `);
 
   GM_addStyle(`
-.warstuff_traveling .status {
+.warstuff_traveling .status::after {
   color: #F287FF !important;
+}
+`);
+
+  GM_addStyle(`
+.members-list div.status {
+  position: relative !important;
+  color: transparent !important;
+}
+.members-list div.status::after {
+  content: attr(data-twse-content);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% - 10px);
+  height: 100%;
+  background: inherit;
+  display: flex;
+  right: 10px;
+  justify-content: flex-end;
+  align-items: center;
+}
+.members-list .ok.status::after {
+    color: var(--user-status-green-color);
+}
+
+
+.members-list .not-ok.status::after {
+    color: var(--user-status-red-color);
+}
+
+.members-list .abroad.status::after, .members-list .traveling.status::after {
+    color: var(--user-status-blue-color);
 }
 `);
 
@@ -240,18 +273,22 @@
             }
             if (status.description.includes("Traveling to ")) {
               li.setAttribute("data-sortA", "4");
-              status_DIV.innerText =
+              const content =
                 "► " + status.description.split("Traveling to ")[1];
+              status_DIV.setAttribute(CONTENT, content);
             } else if (status.description.includes("In ")) {
               li.setAttribute("data-sortA", "3");
-              status_DIV.innerText = status.description.split("In ")[1];
+              const content = status.description.split("In ")[1];
+              status_DIV.setAttribute(CONTENT, content);
             } else if (status.description.includes("Returning")) {
               li.setAttribute("data-sortA", "2");
-              status_DIV.innerText =
+              const content =
                 "◄ " + status.description.split("Returning to Torn from ")[1];
+              status_DIV.setAttribute(CONTENT, content);
             } else if (status.description.includes("Traveling")) {
               li.setAttribute("data-sortA", "5");
-              status_DIV.innerText = "Traveling";
+              const content = "Traveling";
+              status_DIV.setAttribute(CONTENT, content);
             }
             break;
           case "Hospital":
@@ -296,8 +333,8 @@
               li.classList.remove("warstuff_traveling");
               break;
             }
-            if (status_DIV.innerText != time_string) {
-              status_DIV.innerText = time_string;
+            if (status_DIV.getAttribute(CONTENT) != time_string) {
+              status_DIV.setAttribute(CONTENT, time_string);
             }
 
             if (hosp_time_remaining < 300) {
@@ -308,6 +345,7 @@
             break;
 
           default:
+            status_DIV.setAttribute(CONTENT, status_DIV.innerText);
             li.setAttribute("data-sortA", "0");
             li.classList.remove("warstuff_highlight");
             li.classList.remove("warstuff_traveling");
