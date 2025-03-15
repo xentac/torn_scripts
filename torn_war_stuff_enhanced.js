@@ -20,6 +20,8 @@
     "###PDA-APIKEY###";
   const sort_enemies = true;
   const CONTENT = "data-twse-content";
+  const TRAVELING = "data-twse-traveling";
+  const HIGHLIGHT = "data-twse-highlight";
 
   try {
     GM_registerMenuCommand("Set Api Key", function () {
@@ -55,13 +57,13 @@
   }
 
   GM_addStyle(`
-.warstuff_highlight {
+.members-list li:has(div.status[data-twse-highlight="true"]) {
   background-color: #afa5 !important;
 }
 `);
 
   GM_addStyle(`
-.warstuff_traveling .status::after {
+.members-list div.status[data-twse-traveling="true"]::after {
   color: #F287FF !important;
 }
 `);
@@ -303,22 +305,22 @@
               )
             ) {
               status_DIV.setAttribute(CONTENT, status_DIV.innerText);
-              li.classList.remove("warstuff_highlight");
-              li.classList.remove("warstuff_traveling");
+              status_DIV.setAttribute(TRAVELING, "false");
+              status_DIV.setAttribute(HIGHLIGHT, "false");
               break;
             }
             li.setAttribute("data-sortA", "1");
             if (status.description.includes("In a")) {
-              li.classList.add("warstuff_traveling");
+              status_DIV.setAttribute(TRAVELING, "true");
             } else {
-              li.classList.remove("warstuff_traveling");
+              status_DIV.setAttribute(TRAVELING, "false");
             }
 
             const hosp_time_remaining = Math.round(
               status.until - new Date().getTime() / 1000,
             );
             if (hosp_time_remaining <= 0) {
-              li.classList.remove("warstuff_highlight");
+              status_DIV.setAttribute(HIGHLIGHT, "false");
               return;
             }
             const s = Math.floor(hosp_time_remaining % 60);
@@ -331,17 +333,17 @@
             }
 
             if (hosp_time_remaining < 300) {
-              li.classList.add("warstuff_highlight");
+              status_DIV.setAttribute(HIGHLIGHT, "true");
             } else {
-              li.classList.remove("warstuff_highlight");
+              status_DIV.setAttribute(HIGHLIGHT, "false");
             }
             break;
 
           default:
             status_DIV.setAttribute(CONTENT, status_DIV.innerText);
             li.setAttribute("data-sortA", "0");
-            li.classList.remove("warstuff_highlight");
-            li.classList.remove("warstuff_traveling");
+            status_DIV.setAttribute(TRAVELING, "false");
+            status_DIV.setAttribute(HIGHLIGHT, "false");
             break;
         }
       });
