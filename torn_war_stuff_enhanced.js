@@ -124,6 +124,7 @@
   // Start the dom watcher
   setTimeout(() => {
     requestAnimationFrame(watch);
+    requestAnimationFrame(update_statuses);
   }, 1000);
 
   setTimeout(() => {
@@ -131,10 +132,6 @@
       found_war = true;
       extract_all_member_lis();
     }
-  }, 5000);
-
-  setTimeout(() => {
-    update_statuses();
   }, 5000);
 
   const observer = new MutationObserver((mutations) => {
@@ -160,7 +157,6 @@
 
   const member_status = new Map();
   const member_lis = new Map();
-  let watcher = null;
 
   let last_request = null;
   const MIN_TIME_SINCE_LAST_REQUEST = 9000;
@@ -169,11 +165,11 @@
     if (!running) {
       return;
     }
-    setTimeout(update_statuses, 5000);
     if (
       last_request &&
       new Date() - last_request < MIN_TIME_SINCE_LAST_REQUEST
     ) {
+      requestAnimationFrame(update_statuses);
       return;
     }
     last_request = new Date();
@@ -183,6 +179,7 @@
         return;
       }
     }
+    requestAnimationFrame(update_statuses);
   }
 
   async function update_status(faction_id) {
@@ -237,6 +234,7 @@
   }
 
   function extract_all_member_lis() {
+    member_lis.clear();
     get_member_lists().forEach((ul) => {
       extract_member_lis(ul);
     });
