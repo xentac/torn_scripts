@@ -101,6 +101,7 @@
 `);
 
   let running = true;
+  let found_war = false;
 
   function get_faction_ids() {
     const nodes = document.querySelectorAll("UL.members-list");
@@ -120,25 +121,28 @@
     return document.querySelectorAll("ul.members-list");
   }
 
-  setInterval(() => {
-    update_statuses();
+  // Start the dom watcher
+  setTimeout(() => {
+    requestAnimationFrame(watch);
+  }, 1000);
 
-    // Backup in case the observer doesn't work
-    if (watcher == null) {
+  setTimeout(() => {
+    if (document.querySelector(".faction-war")) {
+      found_war = true;
       extract_all_member_lis();
-      create_watcher();
     }
+  }, 5000);
+
+  setTimeout(() => {
+    update_statuses();
   }, 5000);
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.classList && node.classList.contains("faction-war")) {
-          console.log("Caught a mutation");
-
-          update_statuses();
+          found_war = true;
           extract_all_member_lis();
-          create_watcher();
         }
       }
     }
@@ -165,6 +169,7 @@
     if (!running) {
       return;
     }
+    setTimeout(update_statuses, 5000);
     if (
       last_request &&
       new Date() - last_request < MIN_TIME_SINCE_LAST_REQUEST
@@ -247,145 +252,128 @@
     });
   }
 
-  let prom = null;
-
-  async function create_watcher() {
-    if (prom) {
-      return prom;
+  function watch() {
+    if (!running || !found_war) {
+      requestAnimationFrame(watch);
+      return;
     }
-    prom = (async function () {
-      clear_watchers();
-      watcher = setInterval(() => {
-        if (!running) {
-          return;
-        }
-        member_lis.forEach((li, id) => {
-          const state = member_status.get(id);
-          const status_DIV = li.querySelector("DIV.status");
-          if (!state) {
-            // Make sure the user sees something before we've downloaded state
+    member_lis.forEach((li, id) => {
+      const state = member_status.get(id);
+      const status_DIV = li.querySelector("DIV.status");
+      if (!state) {
+        // Make sure the user sees something before we've downloaded state
+        status_DIV.setAttribute(CONTENT, status_DIV.innerText);
+        return;
+      }
+      const status = state.status;
+
+      li.setAttribute("data-until", status.until);
+      switch (status.state) {
+        case "Abroad":
+        case "Traveling":
+          if (
+            !(
+              status_DIV.classList.contains("traveling") ||
+              status_DIV.classList.contains("abroad")
+            )
+          ) {
             status_DIV.setAttribute(CONTENT, status_DIV.innerText);
+            break;
+          }
+          if (status.description.includes("Traveling to ")) {
+            li.setAttribute("data-sortA", "4");
+            const content = "► " + status.description.split("Traveling to ")[1];
+            status_DIV.setAttribute(CONTENT, content);
+          } else if (status.description.includes("In ")) {
+            li.setAttribute("data-sortA", "3");
+            const content = status.description.split("In ")[1];
+            status_DIV.setAttribute(CONTENT, content);
+          } else if (status.description.includes("Returning")) {
+            li.setAttribute("data-sortA", "2");
+            const content =
+              "◄ " + status.description.split("Returning to Torn from ")[1];
+            status_DIV.setAttribute(CONTENT, content);
+          } else if (status.description.includes("Traveling")) {
+            li.setAttribute("data-sortA", "5");
+            const content = "Traveling";
+            status_DIV.setAttribute(CONTENT, content);
+          }
+          break;
+        case "Hospital":
+        case "Jail":
+          if (
+            !(
+              status_DIV.classList.contains("hospital") ||
+              status_DIV.classList.contains("jail")
+            )
+          ) {
+            status_DIV.setAttribute(CONTENT, status_DIV.innerText);
+            status_DIV.setAttribute(TRAVELING, "false");
+            status_DIV.setAttribute(HIGHLIGHT, "false");
+            break;
+          }
+          li.setAttribute("data-sortA", "1");
+          if (status.description.includes("In a")) {
+            status_DIV.setAttribute(TRAVELING, "true");
+          } else {
+            status_DIV.setAttribute(TRAVELING, "false");
+          }
+
+          const hosp_time_remaining = Math.round(
+            status.until - new Date().getTime() / 1000,
+          );
+          if (hosp_time_remaining <= 0) {
+            status_DIV.setAttribute(HIGHLIGHT, "false");
             return;
           }
-          const status = state.status;
+          const s = Math.floor(hosp_time_remaining % 60);
+          const m = Math.floor((hosp_time_remaining / 60) % 60);
+          const h = Math.floor(hosp_time_remaining / 60 / 60);
+          const time_string = `${pad_with_zeros(h)}:${pad_with_zeros(m)}:${pad_with_zeros(s)}`;
 
-          li.setAttribute("data-until", status.until);
-          switch (status.state) {
-            case "Abroad":
-            case "Traveling":
-              if (
-                !(
-                  status_DIV.classList.contains("traveling") ||
-                  status_DIV.classList.contains("abroad")
-                )
-              ) {
-                status_DIV.setAttribute(CONTENT, status_DIV.innerText);
-                break;
-              }
-              if (status.description.includes("Traveling to ")) {
-                li.setAttribute("data-sortA", "4");
-                const content =
-                  "► " + status.description.split("Traveling to ")[1];
-                status_DIV.setAttribute(CONTENT, content);
-              } else if (status.description.includes("In ")) {
-                li.setAttribute("data-sortA", "3");
-                const content = status.description.split("In ")[1];
-                status_DIV.setAttribute(CONTENT, content);
-              } else if (status.description.includes("Returning")) {
-                li.setAttribute("data-sortA", "2");
-                const content =
-                  "◄ " + status.description.split("Returning to Torn from ")[1];
-                status_DIV.setAttribute(CONTENT, content);
-              } else if (status.description.includes("Traveling")) {
-                li.setAttribute("data-sortA", "5");
-                const content = "Traveling";
-                status_DIV.setAttribute(CONTENT, content);
-              }
-              break;
-            case "Hospital":
-            case "Jail":
-              if (
-                !(
-                  status_DIV.classList.contains("hospital") ||
-                  status_DIV.classList.contains("jail")
-                )
-              ) {
-                status_DIV.setAttribute(CONTENT, status_DIV.innerText);
-                status_DIV.setAttribute(TRAVELING, "false");
-                status_DIV.setAttribute(HIGHLIGHT, "false");
-                break;
-              }
-              li.setAttribute("data-sortA", "1");
-              if (status.description.includes("In a")) {
-                status_DIV.setAttribute(TRAVELING, "true");
-              } else {
-                status_DIV.setAttribute(TRAVELING, "false");
-              }
-
-              const hosp_time_remaining = Math.round(
-                status.until - new Date().getTime() / 1000,
-              );
-              if (hosp_time_remaining <= 0) {
-                status_DIV.setAttribute(HIGHLIGHT, "false");
-                return;
-              }
-              const s = Math.floor(hosp_time_remaining % 60);
-              const m = Math.floor((hosp_time_remaining / 60) % 60);
-              const h = Math.floor(hosp_time_remaining / 60 / 60);
-              const time_string = `${pad_with_zeros(h)}:${pad_with_zeros(m)}:${pad_with_zeros(s)}`;
-
-              if (status_DIV.getAttribute(CONTENT) != time_string) {
-                status_DIV.setAttribute(CONTENT, time_string);
-              }
-
-              if (hosp_time_remaining < 300) {
-                status_DIV.setAttribute(HIGHLIGHT, "true");
-              } else {
-                status_DIV.setAttribute(HIGHLIGHT, "false");
-              }
-              break;
-
-            default:
-              status_DIV.setAttribute(CONTENT, status_DIV.innerText);
-              li.setAttribute("data-sortA", "0");
-              status_DIV.setAttribute(TRAVELING, "false");
-              status_DIV.setAttribute(HIGHLIGHT, "false");
-              break;
+          if (status_DIV.getAttribute(CONTENT) != time_string) {
+            status_DIV.setAttribute(CONTENT, time_string);
           }
+
+          if (hosp_time_remaining < 300) {
+            status_DIV.setAttribute(HIGHLIGHT, "true");
+          } else {
+            status_DIV.setAttribute(HIGHLIGHT, "false");
+          }
+          break;
+
+        default:
+          status_DIV.setAttribute(CONTENT, status_DIV.innerText);
+          li.setAttribute("data-sortA", "0");
+          status_DIV.setAttribute(TRAVELING, "false");
+          status_DIV.setAttribute(HIGHLIGHT, "false");
+          break;
+      }
+    });
+    if (sort_enemies) {
+      const nodes = get_member_lists();
+      for (let i = 0; i < nodes.length; i++) {
+        let lis = nodes[i].querySelectorAll("LI");
+        let sorted_lis = Array.from(lis).sort((a, b) => {
+          return (
+            a.getAttribute("data-sortA") - b.getAttribute("data-sortA") ||
+            a.getAttribute("data-until") - b.getAttribute("data-until")
+          );
         });
-        if (sort_enemies) {
-          const nodes = get_member_lists();
-          for (let i = 0; i < nodes.length; i++) {
-            let lis = nodes[i].querySelectorAll("LI");
-            let sorted_lis = Array.from(lis).sort((a, b) => {
-              return (
-                a.getAttribute("data-sortA") - b.getAttribute("data-sortA") ||
-                a.getAttribute("data-until") - b.getAttribute("data-until")
-              );
-            });
-            let sorted = true;
-            for (let j = 0; j < sorted_lis.length; j++) {
-              if (nodes[i].children[j] !== sorted_lis[j]) {
-                sorted = false;
-                break;
-              }
-            }
-            if (!sorted) {
-              sorted_lis.forEach((li) => {
-                nodes[i].appendChild(li);
-              });
-            }
+        let sorted = true;
+        for (let j = 0; j < sorted_lis.length; j++) {
+          if (nodes[i].children[j] !== sorted_lis[j]) {
+            sorted = false;
+            break;
           }
         }
-      }, 250);
-      prom = null;
-    })();
-
-    return prom;
-  }
-
-  function clear_watchers() {
-    clearInterval(watcher);
-    watcher = null;
+        if (!sorted) {
+          sorted_lis.forEach((li) => {
+            nodes[i].appendChild(li);
+          });
+        }
+      }
+    }
+    requestAnimationFrame(watch);
   }
 })();
