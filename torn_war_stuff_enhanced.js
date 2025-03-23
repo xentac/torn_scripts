@@ -124,13 +124,6 @@
     requestAnimationFrame(update_statuses);
   }, 1000);
 
-  setTimeout(() => {
-    if (document.querySelector(".faction-war")) {
-      found_war = true;
-      extract_all_member_lis();
-    }
-  }, 5000);
-
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
