@@ -104,17 +104,14 @@
   let found_war = false;
 
   function get_faction_ids() {
-    const nodes = document.querySelectorAll("UL.members-list");
-    if (nodes.length != 2) {
-      return [];
-    }
-    const enemy_faction_id = nodes[0]
-      .querySelector(`A[href^='/factions.php']`)
-      .href.split("ID=")[1];
-    const your_faction_id = nodes[1]
-      .querySelector(`A[href^='/factions.php']`)
-      .href.split("ID=")[1];
-    return [enemy_faction_id, your_faction_id];
+    const nodes = get_member_lists();
+    faction_ids = [];
+    nodes.forEach((elem) => {
+      faction_ids.push(
+        elem.querySelector(`A[href^='/factions.php']`).href.split("ID=")[1],
+      );
+    });
+    return faction_ids;
   }
 
   function get_member_lists() {
@@ -241,11 +238,13 @@
   }
 
   function extract_member_lis(ul) {
-    const lis = ul.querySelectorAll("LI");
+    const lis = ul.querySelectorAll("LI.enemy, li.your");
     lis.forEach((li) => {
-      const id = li
-        .querySelector(`A[href^='/profiles.php']`)
-        .href.split("ID=")[1];
+      const atag = li.querySelector(`A[href^='/profiles.php']`);
+      if (!atag) {
+        return;
+      }
+      const id = atag.href.split("ID=")[1];
       member_lis.set(id, li);
     });
   }
@@ -258,6 +257,9 @@
     member_lis.forEach((li, id) => {
       const state = member_status.get(id);
       const status_DIV = li.querySelector("DIV.status");
+      if (!status_DIV) {
+        return;
+      }
       if (!state) {
         // Make sure the user sees something before we've downloaded state
         status_DIV.setAttribute(CONTENT, status_DIV.innerText);
@@ -351,7 +353,7 @@
     if (sort_enemies) {
       const nodes = get_member_lists();
       for (let i = 0; i < nodes.length; i++) {
-        let lis = nodes[i].querySelectorAll("LI");
+        let lis = nodes[i].querySelectorAll("LI.enemy, li.your");
         let sorted_lis = Array.from(lis).sort((a, b) => {
           return (
             a.getAttribute("data-sortA") - b.getAttribute("data-sortA") ||
