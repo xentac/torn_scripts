@@ -107,9 +107,12 @@
     const nodes = get_member_lists();
     faction_ids = [];
     nodes.forEach((elem) => {
-      faction_ids.push(
-        elem.querySelector(`A[href^='/factions.php']`).href.split("ID=")[1],
-      );
+      const id = elem
+        .querySelector(`A[href^='/factions.php']`)
+        .href.split("ID=")[1];
+      if (id) {
+        faction_ids.push(id);
+      }
     });
     return faction_ids;
   }
