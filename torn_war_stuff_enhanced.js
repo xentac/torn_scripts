@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torn War Stuff Enhanced
 // @namespace    namespace
-// @version      1.3
+// @version      1.3.1
 // @description  Show travel status and hospital time and sort by hospital time on war page. Fork of https://greasyfork.org/en/scripts/448681-torn-war-stuff
 // @author       xentac
 // @license      MIT
@@ -374,7 +374,7 @@
           }
 
           const hosp_time_remaining = Math.round(
-            status.until - new Date().getTime() / 1000 - time_skew,
+            status.until - new Date().getTime() / 1000,
           );
           if (hosp_time_remaining <= 0) {
             status_DIV.setAttribute(HIGHLIGHT, "false");
