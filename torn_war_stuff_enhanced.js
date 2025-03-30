@@ -316,8 +316,8 @@
           }
 
           let now = new Date().getTime() / 1000;
-          if (serverTimeService) {
-            now = serverTimeService.timeNow / 1000;
+          if (window.getCurrentTimestamp) {
+            now = window.getCurrentTimestamp() / 1000;
           }
           const hosp_time_remaining = Math.round(status.until - now);
           if (hosp_time_remaining <= 0) {
