@@ -125,7 +125,6 @@
   setTimeout(() => {
     requestAnimationFrame(watch);
     requestAnimationFrame(update_statuses);
-    requestAnimationFrame(update_time_skew);
   }, 1000);
 
   const observer = new MutationObserver((mutations) => {
@@ -154,63 +153,6 @@
 
   let last_request = null;
   const MIN_TIME_SINCE_LAST_REQUEST = 9000;
-
-  let time_skew = 0;
-  let last_time_skew_check = 0;
-  const MIN_TIME_SKEW_CHECK_TIME = 60000;
-
-  async function update_time_skew() {
-    if (!running) {
-      return;
-    }
-    if (
-      member_status.size <= 0 ||
-      new Date() - last_time_skew_check < MIN_TIME_SKEW_CHECK_TIME
-    ) {
-      requestAnimationFrame(update_time_skew);
-      return;
-    }
-    last_time_skew_check = new Date();
-    let error = false;
-    const status = await fetch(
-      `https://api.torn.com/user/?selections=timestamp&key=${apiKey}&comment=TornWarStuffEnhanced`,
-    )
-      .then((r) => r.json())
-      .catch((m) => {
-        console.error("[TornWarStuffEnhanced] ", m);
-        error = true;
-      });
-    if (error) {
-      return true;
-    }
-    if (status.error) {
-      console.log(
-        "[TornWarStuffEnhanced] Received error from torn API ",
-        status.error,
-      );
-      if (
-        [0, 1, 2, 3, 4, 6, 7, 10, 12, 13, 14, 16, 18, 21].includes(status.error)
-      ) {
-        console.log(
-          "[TornWarStuffEnhanced] Received a non-recoverable error. Giving up.",
-        );
-        running = false;
-        return false;
-      }
-      if ([5, 8, 9].includes(status.error.code)) {
-        // 5: Too many requests error code
-        // 8: IP block
-        // 9: API disabled
-        // Try again in 30 + MIN_TIME_SINCE_LAST_REQUEST seconds
-        console.log("[TornWarStuffEnhanced] Retrying in 40 seconds.");
-        last_request = new Date() + 30000;
-      }
-      return false;
-    }
-    time_skew = status.timestamp - new Date().getTime() / 1000;
-    console.log("Found time skew to be ", time_skew);
-    requestAnimationFrame(update_time_skew);
-  }
 
   async function update_statuses() {
     if (!running) {
