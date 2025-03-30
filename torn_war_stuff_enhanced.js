@@ -315,9 +315,11 @@
             status_DIV.setAttribute(TRAVELING, "false");
           }
 
-          const hosp_time_remaining = Math.round(
-            status.until - new Date().getTime() / 1000,
-          );
+          let now = new Date().getTime() / 1000;
+          if (serverTimeService) {
+            now = serverTimeService.timeNow / 1000;
+          }
+          const hosp_time_remaining = Math.round(status.until - now);
           if (hosp_time_remaining <= 0) {
             status_DIV.setAttribute(HIGHLIGHT, "false");
             return;
