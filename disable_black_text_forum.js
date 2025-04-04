@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         torn.com No dark text in forum
 // @namespace    xentac
-// @version      20250303.3
+// @version      20250404.1
 // @description  torn.com No Dark Text - Removes all dark text in the forum, so it's readable in dark mode
 // @author       xentac [3354782]
 // @match        *.torn.com/forums.php*
@@ -17,10 +17,12 @@ function removeDarkStyling(node) {
 
     for (var i = 0; i < spans.length; i++) {
       const elem = spans[i];
-      console.log(elem.style.color);
+      // TODO: Write a better color parser. Everything below a certain RGB value should be nulled
       if (elem.style.color == "rgb(51, 51, 51)") {
         elem.style.color = null;
       } else if (elem.style.color == "var(--te-text-color-gray5)") {
+        elem.style.color = null;
+      } else if (elem.style.color == "rgb(0, 0, 0)") {
         elem.style.color = null;
       }
     }
@@ -37,6 +39,7 @@ function reactAll(mutations) {
 
 (function () {
   const target = document.querySelector("#forums-page-wrap");
+  removeDarkStyling(target);
   const observer = new MutationObserver(reactAll);
   observer.observe(target, { childList: true, subtree: true });
   //observer.disconnect();
