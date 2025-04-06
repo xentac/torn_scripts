@@ -138,6 +138,11 @@
     }
   });
 
+  if (document.querySelector(".faction-war")) {
+    found_war = true;
+    extract_all_member_lis();
+  }
+
   function pad_with_zeros(n) {
     if (n < 10) {
       return "0" + n;
