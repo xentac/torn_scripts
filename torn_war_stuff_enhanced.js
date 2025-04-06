@@ -138,10 +138,12 @@
     }
   });
 
-  if (document.querySelector(".faction-war")) {
-    found_war = true;
-    extract_all_member_lis();
-  }
+  setTimeout(() => {
+    if (document.querySelector(".faction-war")) {
+      found_war = true;
+      extract_all_member_lis();
+    }
+  }, 500);
 
   function pad_with_zeros(n) {
     if (n < 10) {
