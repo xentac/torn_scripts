@@ -169,6 +169,7 @@
     const faction_ids = get_faction_ids();
     for (let i = 0; i < faction_ids.length; i++) {
       if (!update_status(faction_ids[i])) {
+        requestAnimationFrame(update_statuses);
         return;
       }
     }
@@ -246,7 +247,7 @@
   }
 
   function watch() {
-    if (!running || !found_war) {
+    if (!found_war) {
       requestAnimationFrame(watch);
       return;
     }
@@ -256,7 +257,7 @@
       if (!status_DIV) {
         return;
       }
-      if (!state) {
+      if (!state || !running) {
         // Make sure the user sees something before we've downloaded state
         status_DIV.setAttribute(CONTENT, status_DIV.innerText);
         return;
