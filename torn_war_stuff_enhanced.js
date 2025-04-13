@@ -132,6 +132,9 @@
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.classList && node.classList.contains("faction-war")) {
+          console.log(
+            "[TornWarStuffEnhanced] Observed mutation of .faction-war node",
+          );
           found_war = true;
           extract_all_member_lis();
         }
@@ -141,6 +144,7 @@
 
   setTimeout(() => {
     if (document.querySelector(".faction-war")) {
+      console.log("[TornWarStuffEnhanced] Found .faction-war");
       found_war = true;
       extract_all_member_lis();
     }
@@ -383,4 +387,5 @@
     }
     requestAnimationFrame(watch);
   }
+  console.log("[TornWarStuffEnhanced] Initialized");
 })();
