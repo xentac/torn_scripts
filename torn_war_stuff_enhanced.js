@@ -5,8 +5,7 @@
 // @description  Show travel status and hospital time and sort by hospital time on war page. Fork of https://greasyfork.org/en/scripts/448681-torn-war-stuff
 // @author       xentac
 // @license      MIT
-// @match        https://*.torn.com/factions.php*
-// @match        https://torn.com/factions.php*
+// @match        https://www.torn.com/factions.php*
 // @grant        GM_addStyle
 // @grant        GM_registerMenuCommand
 // @grant        GM_xmlhttpRequest
