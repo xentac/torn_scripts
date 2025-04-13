@@ -6,6 +6,7 @@
 // @author       xentac
 // @license      MIT
 // @match        https://*.torn.com/factions.php*
+// @match        https://torn.com/factions.php*
 // @grant        GM_addStyle
 // @grant        GM_registerMenuCommand
 // @grant        GM_xmlhttpRequest
