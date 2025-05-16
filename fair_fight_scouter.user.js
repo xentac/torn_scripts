@@ -479,7 +479,7 @@ if (!singleton) {
 
       // Lookup the fair fight score from cache
       if (fair_fights[player_id]) {
-        const ff = fair_fights[player_id].value;
+        const ff = fair_fights[player_id].fair_fight;
         const ff_string = get_ff_string_short(fair_fights[player_id]);
 
         const background_colour = get_ff_colour(ff);
@@ -645,7 +645,7 @@ if (!singleton) {
       }
 
       const ff = get_ff(player_id);
-      if (ff) {
+      if (ff && ff.fair_fight) {
         const percent = ff_to_percent(ff);
         element.style.setProperty("--band-percent", percent);
 
