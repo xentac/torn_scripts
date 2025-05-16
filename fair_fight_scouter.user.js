@@ -233,8 +233,7 @@ if (!singleton) {
               var expiry = Date.now() + one_hour;
 
               ff_response.forEach((result) => {
-                console.log(result);
-                if (result.player_id) {
+                if (result.fair_fight) {
                   id = result.player_id;
                   // Cache the value
                   //console.log("Caching stats for " + id);
@@ -279,7 +278,7 @@ if (!singleton) {
       cached_ff_response = null;
     }
 
-    if (cached_ff_response) {
+    if (cached_ff_response && cached_ff_response.fair_fight) {
       if (cached_ff_response.expiry > Date.now()) {
         return cached_ff_response;
       }
@@ -452,7 +451,10 @@ if (!singleton) {
       }
 
       if (cached_ff_response) {
-        if (cached_ff_response.expiry > Date.now()) {
+        if (
+          cached_ff_response.expiry > Date.now() &&
+          cached_ff_response.fair_fight
+        ) {
           fair_fights[player_id] = cached_ff_response;
         }
       }
@@ -507,6 +509,7 @@ if (!singleton) {
 
       if (
         !cached_ff_response ||
+        !cached_ff_response.fair_fight ||
         cached_ff_response.expiry < Date.now() ||
         cached_ff_response.age > 7 * 24 * 60 * 60
       ) {
@@ -591,7 +594,7 @@ if (!singleton) {
 
   function get_ff(target_id) {
     const response = get_fair_fight_response(target_id);
-    if (response) {
+    if (response && response.fair_fight) {
       return response.fair_fight;
     }
 
@@ -645,7 +648,7 @@ if (!singleton) {
       }
 
       const ff = get_ff(player_id);
-      if (ff && ff.fair_fight) {
+      if (ff) {
         const percent = ff_to_percent(ff);
         element.style.setProperty("--band-percent", percent);
 
