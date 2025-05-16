@@ -2,7 +2,7 @@
 // @name          FF Scouter xentac
 // @namespace     Violentmonkey Scripts
 // @match         https://www.torn.com/*
-// @version       2.3
+// @version       2.3.1
 // @author        rDacted, xentac
 // @description   Shows the expected Fair Fight score against targets. Modified to work with new ffscouter.com.
 // @grant         GM_xmlhttpRequest
@@ -14,7 +14,7 @@
 // @connect       ffscouter.com
 // ==/UserScript==
 
-const FF_VERSION = 2.3;
+const FF_VERSION = "2.3.1";
 
 // This is a standalone version of FF Scouter which has been integrated into TornTools
 // This version is provided for TornPDA users, or those that don't use TornTools
