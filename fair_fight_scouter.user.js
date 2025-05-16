@@ -2,7 +2,7 @@
 // @name          FF Scouter xentac
 // @namespace     Violentmonkey Scripts
 // @match         https://www.torn.com/*
-// @version       2.2
+// @version       2.3
 // @author        rDacted, xentac
 // @description   Shows the expected Fair Fight score against targets. Modified to work with new ffscouter.com.
 // @grant         GM_xmlhttpRequest
@@ -14,7 +14,7 @@
 // @connect       ffscouter.com
 // ==/UserScript==
 
-const FF_VERSION = 2.1;
+const FF_VERSION = 2.3;
 
 // This is a standalone version of FF Scouter which has been integrated into TornTools
 // This version is provided for TornPDA users, or those that don't use TornTools
@@ -288,7 +288,7 @@ if (!singleton) {
 
   function display_fair_fight(target_id) {
     const response = get_fair_fight_response(target_id);
-    if (response) {
+    if (response.fair_fight) {
       set_fair_fight(response);
     }
   }
@@ -700,7 +700,7 @@ if (!singleton) {
     const player_id = get_player_id_in_element(mini);
     if (player_id) {
       const response = get_fair_fight_response(player_id);
-      if (response) {
+      if (response.fair_fight) {
         // Remove any existing elements
         $(mini).find(".ff-scouter-mini-ff").remove();
 
