@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         FF Scouter V2
+// @name         FF Scouter V2 xentac edition
 // @namespace    Violentmonkey Scripts
 // @match        https://www.torn.com/*
-// @version      2.31
-// @author       rDacted, Weav3r
+// @version      2.31xentac
+// @author       rDacted, Weav3r, xentac
 // @description  Shows the expected Fair Fight score against targets and faction war status
 // @grant        GM_xmlhttpRequest
 // @grant        GM_setValue
@@ -16,7 +16,7 @@
 // @updateURL https://update.greasyfork.org/scripts/535292/FF%20Scouter%20V2.meta.js
 // ==/UserScript==
 
-const FF_VERSION = 2.3;
+const FF_VERSION = "2.31xentac";
 const API_INTERVAL = 30000;
 const memberCountdowns = {};
 let apiCallInProgressCount = 0;
@@ -1099,12 +1099,12 @@ if (!singleton) {
     return true;
   }
 
-  let warObserver = new MutationObserver((mutations, obs) => {
+  /*let warObserver = new MutationObserver((mutations, obs) => {
     if (initWarScript()) {
       obs.disconnect();
     }
   });
   warObserver.observe(document.body, { childList: true, subtree: true });
 
-  setInterval(updateAllMemberTimers, 1000);
+  setInterval(updateAllMemberTimers, 1000);*/
 }
