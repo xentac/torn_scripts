@@ -344,7 +344,7 @@ if (!singleton) {
       if (
         cached_ff_response.expiry > Date.now() &&
         !cached_ff_response.no_data &&
-        !cached_ff_response.value
+        cached_ff_response.value
       ) {
         return cached_ff_response;
       }
@@ -547,7 +547,7 @@ if (!singleton) {
         if (
           cached_ff_response.expiry > Date.now() &&
           !cached_ff_response.no_data &&
-          !cached_ff_response.value
+          cached_ff_response.value
         ) {
           fair_fights[player_id] = cached_ff_response;
         }
