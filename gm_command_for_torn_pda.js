@@ -21,8 +21,12 @@ ran_element.style.visibility = "hidden";
 ran_element.className = "gmregistermenucommandran";
 document.querySelector(".settings-menu").appendChild(ran_element);
 
-_orig_GM_registerMenuCommand = GM_registerMenuCommand;
-GM_registerMenuCommand = function (name, callback, options_or_accessKey) {
+_orig_GM_registerMenuCommand = window.GM_registerMenuCommand;
+window.GM_registerMenuCommand = function (
+  name,
+  callback,
+  options_or_accessKey,
+) {
   console.log("[GFT] GM_registerMenuCommand was called");
   const menu = document.querySelector(".settings-menu");
   const li = document.createElement("li");
