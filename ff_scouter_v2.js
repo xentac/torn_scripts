@@ -540,7 +540,10 @@ if (!singleton) {
       }
 
       if (cached_ff_response) {
-        if (cached_ff_response.expiry > Date.now()) {
+        if (
+          cached_ff_response.expiry > Date.now() &&
+          !cached_ff_response.no_data
+        ) {
           fair_fights[player_id] = cached_ff_response;
         }
       }
