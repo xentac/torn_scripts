@@ -2,7 +2,7 @@
 // @name         FF Scouter V2 xentac edition
 // @namespace    Violentmonkey Scripts
 // @match        https://www.torn.com/*
-// @version      2.31xentac
+// @version      2.41xentac
 // @author       rDacted, Weav3r, xentac
 // @description  Shows the expected Fair Fight score against targets and faction war status
 // @grant        GM_xmlhttpRequest
@@ -11,12 +11,12 @@
 // @grant        GM_deleteValue
 // @grant        GM_registerMenuCommand
 // @grant        GM_addStyle
-// @connect      tornpal.com
+// @connect      ffscouter.com
 // @downloadURL https://update.greasyfork.org/scripts/535292/FF%20Scouter%20V2.user.js
 // @updateURL https://update.greasyfork.org/scripts/535292/FF%20Scouter%20V2.meta.js
 // ==/UserScript==
 
-const FF_VERSION = "2.31xentac";
+const FF_VERSION = "2.41xentac";
 const API_INTERVAL = 30000;
 const memberCountdowns = {};
 let apiCallInProgressCount = 0;
@@ -120,7 +120,7 @@ if (!singleton) {
         }
     `);
 
-  var BASE_URL = "https://tornpal.com";
+  var BASE_URL = "https://ffscouter.com";
   var BLUE_ARROW =
     "https://raw.githubusercontent.com/rDacted2/fair_fight_scouter/main/images/blue-arrow.svg";
   var GREEN_ARROW =
@@ -263,7 +263,7 @@ if (!singleton) {
       console.log(`Refreshing cache for ${unknown_player_ids.length} ids`);
 
       var player_id_list = unknown_player_ids.join(",");
-      const url = `${BASE_URL}/api/v1/ffscoutergroup?key=${key}&targets=${player_id_list}`;
+      const url = `${BASE_URL}/api/v1/get-stats?key=${key}&targets=${player_id_list}`;
 
       rD_xmlhttpRequest({
         method: "GET",
@@ -271,32 +271,50 @@ if (!singleton) {
         onload: function (response) {
           if (response.status == 200) {
             var ff_response = JSON.parse(response.responseText);
-            if (ff_response.status) {
-              var one_hour = 60 * 60 * 1000;
-              var expiry = Date.now() + one_hour;
-
-              Object.entries(ff_response.results).forEach(([id, result]) => {
-                if (result.status) {
-                  result = result.result;
-                  result.expiry = expiry;
-                  rD_setValue("" + id, JSON.stringify(result));
-                }
-              });
-
-              callback(player_ids);
-            } else {
-              console.log(
-                "FF Scouter failed to get player information. Error message: " +
-                  ff_response.message,
-              );
-              if (ff_response.error_code == 3) {
-                rD_deleteValue("limited_key");
-              }
+            if (ff_response && ff_response.error) {
+              showToast(ff_response.error);
+              return;
             }
+            var one_hour = 60 * 60 * 1000;
+            var expiry = Date.now() + one_hour;
+            ff_response.forEach((result) => {
+              if (result && result.player_id) {
+                // If all values are null, store a no_data flag
+                if (
+                  result.fair_fight === null &&
+                  result.bs_estimate === null &&
+                  result.bs_estimate_human === null &&
+                  result.last_updated === null
+                ) {
+                  let cacheObj = {
+                    no_data: true,
+                    expiry: expiry,
+                  };
+                  rD_setValue("" + result.player_id, JSON.stringify(cacheObj));
+                } else {
+                  let cacheObj = {
+                    value: result.fair_fight,
+                    last_updated: result.last_updated,
+                    expiry: expiry,
+                    bs_estimate: result.bs_estimate,
+                    bs_estimate_human: result.bs_estimate_human,
+                  };
+                  rD_setValue("" + result.player_id, JSON.stringify(cacheObj));
+                }
+              }
+            });
+            callback(player_ids);
           } else {
-            console.log(
-              "Failed to make request, status code " + response.status,
-            );
+            try {
+              var err = JSON.parse(response.responseText);
+              if (err && err.error) {
+                showToast(err.error);
+              } else {
+                showToast("API request failed.");
+              }
+            } catch {
+              showToast("API request failed.");
+            }
           }
         },
         onerror: function (e) {
@@ -365,6 +383,10 @@ if (!singleton) {
   }
 
   function get_detailed_message(ff_response, player_id) {
+    if (ff_response.no_data) {
+      // Show 'No data' if the API returned all nulls
+      return `<span style=\"font-weight: bold; margin-right: 6px;\">FairFight:</span><span style=\"background: #444; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 4px; display: inline-block;\">No data</span>`;
+    }
     const ff_string = get_ff_string(ff_response);
     const difficulty = get_difficulty_text(ff_response.value);
 
@@ -401,37 +423,12 @@ if (!singleton) {
     const background_colour = get_ff_colour(ff_response.value);
     const text_colour = get_contrast_color(background_colour);
 
-    const tornpalIcon = `<a href="https://tornpal.com/profile/${player_id}" target="_blank" style="text-decoration: none; display: inline-block; margin-right: 5px; cursor: pointer;">
-            <img src="https://cdn.discordapp.com/icons/1280336183020355594/07bf93fb78a843ad37976e53bc22f91e.webp?size=128&quality=lossless" alt="TornPal" style="width: 16px; height: 16px; vertical-align: middle; border-radius: 2px;">
-        </a>`;
-
     let statDetails = "";
-    if (ff_response.bs_estimate) {
-      const low =
-        ff_response.bs_estimate.low_friendly || ff_response.bs_estimate.low;
-      const high =
-        ff_response.bs_estimate.high_friendly || ff_response.bs_estimate.high;
-      let avg = "";
-      if (ff_response.bs_estimate.low && ff_response.bs_estimate.high) {
-        const avgVal = Math.round(
-          (Number(ff_response.bs_estimate.low) +
-            Number(ff_response.bs_estimate.high)) /
-            2,
-        );
-        if (avgVal >= 1e9) {
-          avg = (avgVal / 1e9).toFixed(2).replace(/\.00$/, "") + "b";
-        } else if (avgVal >= 1e6) {
-          avg = (avgVal / 1e6).toFixed(2).replace(/\.00$/, "") + "m";
-        } else if (avgVal >= 1e3) {
-          avg = (avgVal / 1e3).toFixed(2).replace(/\.00$/, "") + "k";
-        } else {
-          avg = avgVal;
-        }
-      }
-      statDetails = `<span style=\"font-size: 11px; font-weight: normal; margin-left: 8px; vertical-align: middle; color: #cccccc; font-style: italic;\">Est. Stats: <span title=\"Low estimate\">${low}</span> - <span title=\"High estimate\">${high}</span> (avg: <span title=\"Average\">${avg}</span>)</span>`;
+    if (ff_response.bs_estimate_human) {
+      statDetails = `<span style=\"font-size: 11px; font-weight: normal; margin-left: 8px; vertical-align: middle; color: #cccccc; font-style: italic;\">Est. Stats: <span>${ff_response.bs_estimate_human}</span></span>`;
     }
 
-    return `${tornpalIcon}<span style=\"background: ${background_colour}; color: ${text_colour}; font-weight: bold; padding: 2px 6px; border-radius: 4px; display: inline-block;\">FF ${ff_string} (${difficulty}) ${fresh}</span>${statDetails}`;
+    return `<span style=\"font-weight: bold; margin-right: 6px;\">FairFight:</span><span style=\"background: ${background_colour}; color: ${text_colour}; font-weight: bold; padding: 2px 6px; border-radius: 4px; display: inline-block;\">${ff_string} (${difficulty}) ${fresh}</span>${statDetails}`;
   }
 
   function get_ff_string_short(ff_response, player_id) {
@@ -441,7 +438,7 @@ if (!singleton) {
     const age = now - ff_response.last_updated;
 
     if (ff > 9) {
-      return `<a href="https://tornpal.com/profile/${player_id}" target="_blank" style="text-decoration: none; color: inherit;">high</a>`;
+      return `high`;
     }
 
     var suffix = "";
@@ -449,7 +446,7 @@ if (!singleton) {
       suffix = "?";
     }
 
-    return `<a href="https://tornpal.com/profile/${player_id}" target="_blank" style="text-decoration: none; color: inherit;">${ff}${suffix}</a>`;
+    return `${ff}${suffix}`;
   }
 
   function set_fair_fight(ff_response, player_id) {
@@ -904,7 +901,6 @@ if (!singleton) {
     subtree: true,
   });
 
-  // Automatic country abbreviation function
   function abbreviateCountry(name) {
     if (!name) return "";
     if (name.trim().toLowerCase() === "switzerland") return "Switz";
@@ -935,7 +931,6 @@ if (!singleton) {
     let statusEl = li.querySelector(".status");
     if (!statusEl) return;
 
-    // Update last action
     let lastActionRow = li.querySelector(".last-action-row");
     let lastActionText = member.last_action?.relative || "";
     if (lastActionRow) {
@@ -1107,4 +1102,59 @@ if (!singleton) {
   warObserver.observe(document.body, { childList: true, subtree: true });
 
   setInterval(updateAllMemberTimers, 1000);*/
+
+  function showToast(message) {
+    const existing = document.getElementById("ffscouter-toast");
+    if (existing) existing.remove();
+
+    const toast = document.createElement("div");
+    toast.id = "ffscouter-toast";
+    toast.style.position = "fixed";
+    toast.style.bottom = "30px";
+    toast.style.left = "50%";
+    toast.style.transform = "translateX(-50%)";
+    toast.style.background = "#c62828";
+    toast.style.color = "#fff";
+    toast.style.padding = "8px 16px";
+    toast.style.borderRadius = "8px";
+    toast.style.fontSize = "14px";
+    toast.style.boxShadow = "0 2px 12px rgba(0,0,0,0.2)";
+    toast.style.zIndex = "2147483647";
+    toast.style.opacity = "1";
+    toast.style.transition = "opacity 0.5s";
+    toast.style.display = "flex";
+    toast.style.alignItems = "center";
+    toast.style.gap = "10px";
+
+    // Close button
+    const closeBtn = document.createElement("span");
+    closeBtn.textContent = "×";
+    closeBtn.style.cursor = "pointer";
+    closeBtn.style.marginLeft = "8px";
+    closeBtn.style.fontWeight = "bold";
+    closeBtn.style.fontSize = "18px";
+    closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.onclick = () => toast.remove();
+
+    const msg = document.createElement("span");
+    if (
+      message ===
+      "Invalid API key. Please sign up at ffscouter.com to use this service"
+    ) {
+      msg.innerHTML =
+        'FairFight Scouter: Invalid API key. Please sign up at <a href="https://ffscouter.com" target="_blank" style="color: #fff; text-decoration: underline; font-weight: bold;">ffscouter.com</a> to use this service';
+    } else {
+      msg.textContent = `FairFight Scouter: ${message}`;
+    }
+
+    toast.appendChild(msg);
+    toast.appendChild(closeBtn);
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 500);
+      }
+    }, 4000);
+  }
 }
