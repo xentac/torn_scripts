@@ -2,7 +2,7 @@
 // @name         FF Scouter V2 xentac edition
 // @namespace    Violentmonkey Scripts
 // @match        https://www.torn.com/*
-// @version      2.41xentac2
+// @version      2.41xentac3
 // @author       rDacted, Weav3r, xentac
 // @description  Shows the expected Fair Fight score against targets and faction war status
 // @grant        GM_xmlhttpRequest
@@ -16,7 +16,7 @@
 // @updateURL https://update.greasyfork.org/scripts/535292/FF%20Scouter%20V2.meta.js
 // ==/UserScript==
 
-const FF_VERSION = "2.41xentac2";
+const FF_VERSION = "2.41xentac3";
 const API_INTERVAL = 30000;
 const memberCountdowns = {};
 let apiCallInProgressCount = 0;
@@ -343,7 +343,8 @@ if (!singleton) {
     if (cached_ff_response) {
       if (
         cached_ff_response.expiry > Date.now() &&
-        !cached_ff_response.no_data
+        !cached_ff_response.no_data &&
+        !cached_ff_response.value
       ) {
         return cached_ff_response;
       }
@@ -386,7 +387,7 @@ if (!singleton) {
   }
 
   function get_detailed_message(ff_response, player_id) {
-    if (ff_response.no_data) {
+    if (ff_response.no_data || !ff_response.value) {
       // Show 'No data' if the API returned all nulls
       return `<span style=\"font-weight: bold; margin-right: 6px;\">FairFight:</span><span style=\"background: #444; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 4px; display: inline-block;\">No data</span>`;
     }
@@ -545,7 +546,8 @@ if (!singleton) {
       if (cached_ff_response) {
         if (
           cached_ff_response.expiry > Date.now() &&
-          !cached_ff_response.no_data
+          !cached_ff_response.no_data &&
+          !cached_ff_response.value
         ) {
           fair_fights[player_id] = cached_ff_response;
         }
@@ -604,7 +606,8 @@ if (!singleton) {
       if (
         !cached_ff_response ||
         cached_ff_response.expiry < Date.now() ||
-        cached_ff_response.age > 7 * 24 * 60 * 60
+        cached_ff_response.age > 7 * 24 * 60 * 60 ||
+        (!cached_ff_response.value && !cached_ff_response.no_data)
       ) {
         unknown_player_ids.push(player_id);
       }
