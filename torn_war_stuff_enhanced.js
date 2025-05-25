@@ -15,6 +15,11 @@
 (async function () {
   ("use strict");
 
+  const ffScouterV2DisableWarMonitor = document.createElement("div");
+  ffScouterV2DisableWarMonitor.id = "FFScouterV2DisableWarMonitor";
+  ffScouterV2DisableWarMonitor.style.display = "none";
+  document.documentElement.appendChild(ffScouterV2DisableWarMonitor);
+
   let apiKey =
     localStorage.getItem("xentac-torn_war_stuff_enhanced-apikey") ??
     "###PDA-APIKEY###";
@@ -387,4 +392,6 @@
     requestAnimationFrame(watch);
   }
   console.log("[TornWarStuffEnhanced] Initialized");
+
+  window.dispatchEvent(new Event("FFScouterV2DisableWarMonitor"));
 })();
