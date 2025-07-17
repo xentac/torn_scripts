@@ -24,6 +24,7 @@
     localStorage.getItem("xentac-torn_war_stuff_enhanced-apikey") ??
     "###PDA-APIKEY###";
   const sort_enemies = true;
+  let ever_sorted = false;
   const CONTENT = "data-twse-content";
   const TRAVELING = "data-twse-traveling";
   const HIGHLIGHT = "data-twse-highlight";
@@ -155,6 +156,10 @@
       order = "asc";
     } else {
       order = "desc";
+    }
+
+    if (column != "score" && order != "desc") {
+      ever_sorted = true;
     }
 
     return { column: column, order: order };
@@ -403,7 +408,10 @@
       // Only sort if Status is the field to be sorted
       const nodes = get_member_lists();
       for (let i = 0; i < nodes.length; i++) {
-        const sorted_column = get_sorted_column(nodes[i]);
+        let sorted_column = get_sorted_column(nodes[i]);
+        if (!ever_sorted) {
+          sorted_column = { column: "status", order: "asc" };
+        }
         if (sorted_column["column"] != "status") {
           continue;
         }
