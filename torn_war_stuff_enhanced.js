@@ -126,6 +126,40 @@
     return document.querySelectorAll("ul.members-list");
   }
 
+  function get_sorted_column(member_list) {
+    const member_div = member_list.parentNode.querySelector("div.member div");
+    const level_div = member_list.parentNode.querySelector("div.level div");
+    const points_div = member_list.parentNode.querySelector("div.points div");
+    const status_div = member_list.parentNode.querySelector("div.status div");
+
+    let column = null;
+    let order = null;
+
+    let classname = "";
+
+    if (member_div.className.match(/activeIcon__/)) {
+      column = "member";
+      classname = member_div.className;
+    } else if (level_div.className.match(/activeIcon__/)) {
+      column = "level";
+      classname = level_div.className;
+    } else if (points_div.className.match(/activeIcon__/)) {
+      column = "points";
+      classname = points_div.className;
+    } else if (status_div.className.match(/activeIcon__/)) {
+      column = "status";
+      classname = status_div.className;
+    }
+
+    if (classname.match(/asc__/)) {
+      order = "asc";
+    } else {
+      order = "desc";
+    }
+
+    return { column: column, order: order };
+  }
+
   // Start the dom watcher
   setTimeout(() => {
     requestAnimationFrame(watch);
@@ -366,13 +400,25 @@
       }
     });
     if (sort_enemies) {
+      // Only sort if Status is the field to be sorted
       const nodes = get_member_lists();
       for (let i = 0; i < nodes.length; i++) {
+        const sorted_column = get_sorted_column(nodes[i]);
+        if (sorted_column["column"] != "status") {
+          continue;
+        }
         let lis = nodes[i].querySelectorAll("LI.enemy, li.your");
         let sorted_lis = Array.from(lis).sort((a, b) => {
+          let left = a;
+          let right = b;
+          if (sorted_column["order"] == "desc") {
+            left = b;
+            right = a;
+          }
           return (
-            a.getAttribute("data-sortA") - b.getAttribute("data-sortA") ||
-            a.getAttribute("data-until") - b.getAttribute("data-until")
+            left.getAttribute("data-sortA") -
+              right.getAttribute("data-sortA") ||
+            left.getAttribute("data-until") - right.getAttribute("data-until")
           );
         });
         let sorted = true;
