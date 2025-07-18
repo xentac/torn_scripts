@@ -7,6 +7,10 @@
 // @license      MIT
 // @match        https://www.torn.com/factions.php*
 // @grant        GM_addStyle
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_deleteValue
+// @grant        GM_listValues
 // @grant        GM_registerMenuCommand
 // @grant        GM_xmlhttpRequest
 // @connect      api.torn.com
@@ -203,7 +207,6 @@
   const wrapper = document.body; //.querySelector('#mainContainer')
   observer.observe(wrapper, { subtree: true, childList: true });
 
-  const member_status = new Map();
   const member_lis = new Map();
 
   let last_request = null;
@@ -221,6 +224,7 @@
       return;
     }
     last_request = new Date();
+    cache.clear_stale();
     const faction_ids = get_faction_ids();
     for (let i = 0; i < faction_ids.length; i++) {
       if (!update_status(faction_ids[i])) {
@@ -278,12 +282,93 @@
         .replace("United Kingdom", "UK")
         .replace("Argentina", "Arg")
         .replace("Switzerland", "Switz");
-      member_status.set(k, v);
+      cache.update_member_status(k, v);
     }
   }
 
+  class CacheManager {
+    constructor(prefix, staleness) {
+      this.prefix = prefix;
+      this.staleness = staleness;
+    }
+
+    make_id(id) {
+      return `${this.prefix}${id}`;
+    }
+
+    update_member_status(id, data) {
+      GM_setValue(
+        this.make_id(id),
+        JSON.stringify({ data: data, timestamp: new Date().getTime() }),
+      );
+    }
+
+    extract_value(value) {
+      if (value == null) {
+        return null;
+      }
+
+      let data = {};
+      let timestamp = 0;
+      try {
+        const object = JSON.parse(value);
+        data = object.data;
+        timestamp = object.timestamp;
+      } catch (e) {
+        console.log(
+          `[TornWarStuffEnhanced] Error parsing cached value from ${this.make_id(id)}`,
+        );
+        this.delete_member_status(id);
+        return null;
+      }
+
+      return { data: data, timestamp: timestamp };
+    }
+
+    get_member_status(id) {
+      const value = GM_getValue(this.make_id(id), null);
+
+      const extracted = this.extract_value(value);
+
+      if (extracted == null) {
+        return null;
+      }
+
+      const { data, timestamp } = extracted;
+      if (new Date().getTime() - timestamp > this.staleness) {
+        this.delete_member_status(id);
+        return null;
+      }
+
+      return data;
+    }
+
+    delete_member_status(id) {
+      GM_deleteValue(id);
+    }
+
+    clear_stale() {
+      for (const key of GM_listValues()) {
+        if (!key.startsWith(this.prefix)) {
+          continue;
+        }
+
+        const extracted = this.extract_value(GM_getValue(key, null));
+
+        if (extracted == null) {
+          GM_deleteValue(key);
+          continue;
+        }
+        const { timestamp } = extracted;
+        if (new Date().getTime() - timestamp > this.staleness) {
+          GM_deleteValue(key);
+        }
+      }
+    }
+  }
+  const cache = new CacheManager("twse-", 30000);
+
   function extract_all_member_lis() {
-    member_lis.clear();
     get_member_lists().forEach((ul) => {
       extract_member_lis(ul);
     });
@@ -301,7 +386,7 @@
     });
   }
 
-  let last_frame = new Date();
+  let last_frame = 0;
   const TIME_BETWEEN_FRAMES = 500;
 
   function watch() {
@@ -316,7 +401,7 @@
     }
     last_frame = new Date();
     member_lis.forEach((li, id) => {
-      const state = member_status.get(id);
+      const state = cache.get_member_status(id);
       const status_DIV = li.querySelector("DIV.status");
       if (!status_DIV) {
         return;
