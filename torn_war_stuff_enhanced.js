@@ -335,19 +335,23 @@
           if (status.description.includes("Traveling to ")) {
             li.setAttribute("data-sortA", "4");
             const content = "► " + status.description.split("Traveling to ")[1];
+            li.setAttribute("data-until", content);
             status_DIV.setAttribute(CONTENT, content);
           } else if (status.description.includes("In ")) {
             li.setAttribute("data-sortA", "3");
             const content = status.description.split("In ")[1];
+            li.setAttribute("data-until", content);
             status_DIV.setAttribute(CONTENT, content);
           } else if (status.description.includes("Returning")) {
             li.setAttribute("data-sortA", "2");
             const content =
               "◄ " + status.description.split("Returning to Torn from ")[1];
+            li.setAttribute("data-until", content);
             status_DIV.setAttribute(CONTENT, content);
           } else if (status.description.includes("Traveling")) {
             li.setAttribute("data-sortA", "5");
             const content = "Traveling";
+            li.setAttribute("data-until", content);
             status_DIV.setAttribute(CONTENT, content);
           }
           break;
@@ -423,11 +427,22 @@
             left = b;
             right = a;
           }
-          return (
-            left.getAttribute("data-sortA") -
-              right.getAttribute("data-sortA") ||
-            left.getAttribute("data-until") - right.getAttribute("data-until")
-          );
+          const sorta =
+            left.getAttribute("data-sortA") - right.getAttribute("data-sortA");
+          if (sorta != 0) {
+            return sorta;
+          }
+          if (
+            left.getAttribute("data-until") < right.getAttribute("data-until")
+          ) {
+            return -1;
+          } else if (
+            left.getAttribute("data-until") == right.getAttribute("data-until")
+          ) {
+            return 0;
+          } else {
+            return 1;
+          }
         });
         let sorted = true;
         for (let j = 0; j < sorted_lis.length; j++) {
