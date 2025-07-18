@@ -301,11 +301,20 @@
     });
   }
 
+  let last_frame = new Date();
+  const TIME_BETWEEN_FRAMES = 500;
+
   function watch() {
     if (!found_war) {
       requestAnimationFrame(watch);
       return;
     }
+    // Update no more frequently than every 500ms
+    if (new Date() - last_frame < TIME_BETWEEN_FRAMES) {
+      requestAnimationFrame(watch);
+      return;
+    }
+    last_frame = new Date();
     member_lis.forEach((li, id) => {
       const state = member_status.get(id);
       const status_DIV = li.querySelector("DIV.status");
