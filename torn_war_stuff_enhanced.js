@@ -173,7 +173,7 @@
   setTimeout(() => {
     requestAnimationFrame(watch);
     requestAnimationFrame(update_statuses);
-  }, 1000);
+  }, 250);
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
