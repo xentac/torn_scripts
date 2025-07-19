@@ -319,6 +319,7 @@
       const status = state.status;
 
       li.setAttribute("data-until", status.until);
+      li.setAttribute("data-location", "");
       switch (status.state) {
         case "Abroad":
         case "Traveling":
@@ -334,23 +335,23 @@
           if (status.description.includes("Traveling to ")) {
             li.setAttribute("data-sortA", "4");
             const content = "► " + status.description.split("Traveling to ")[1];
-            li.setAttribute("data-until", content);
+            li.setAttribute("data-location", content);
             status_DIV.setAttribute(CONTENT, content);
           } else if (status.description.includes("In ")) {
             li.setAttribute("data-sortA", "3");
             const content = status.description.split("In ")[1];
-            li.setAttribute("data-until", content);
+            li.setAttribute("data-location", content);
             status_DIV.setAttribute(CONTENT, content);
           } else if (status.description.includes("Returning")) {
             li.setAttribute("data-sortA", "2");
             const content =
               "◄ " + status.description.split("Returning to Torn from ")[1];
-            li.setAttribute("data-until", content);
+            li.setAttribute("data-location", content);
             status_DIV.setAttribute(CONTENT, content);
           } else if (status.description.includes("Traveling")) {
             li.setAttribute("data-sortA", "5");
             const content = "Traveling";
-            li.setAttribute("data-until", content);
+            li.setAttribute("data-location", content);
             status_DIV.setAttribute(CONTENT, content);
           }
           break;
@@ -431,17 +432,20 @@
           if (sorta != 0) {
             return sorta;
           }
-          if (
-            left.getAttribute("data-until") < right.getAttribute("data-until")
-          ) {
-            return -1;
-          } else if (
-            left.getAttribute("data-until") == right.getAttribute("data-until")
-          ) {
-            return 0;
-          } else {
-            return 1;
+          const left_location = left.getAttribute("data-location");
+          const right_location = right.getAttribute("data-location");
+          if (left_location && right_location) {
+            if (left_location < right_location) {
+              return -1;
+            } else if (left_location == right_location) {
+              return 0;
+            } else {
+              return 1;
+            }
           }
+          return (
+            left.getAttribute("data-until") - right.getAttribute("data-until")
+          );
         });
         let sorted = true;
         for (let j = 0; j < sorted_lis.length; j++) {
