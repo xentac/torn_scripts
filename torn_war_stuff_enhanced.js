@@ -15,6 +15,11 @@
 (async function () {
   ("use strict");
 
+  if (document.querySelector("div#FFScouterV2DisableWarMonitor")) {
+    // We're already set up...
+    return;
+  }
+
   const ffScouterV2DisableWarMonitor = document.createElement("div");
   ffScouterV2DisableWarMonitor.id = "FFScouterV2DisableWarMonitor";
   ffScouterV2DisableWarMonitor.style.display = "none";
