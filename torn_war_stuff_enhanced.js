@@ -164,13 +164,6 @@
 
     return { column: column, order: order };
   }
-
-  // Start the dom watcher
-  setTimeout(() => {
-    requestAnimationFrame(watch);
-    requestAnimationFrame(update_statuses);
-  }, 1000);
-
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
@@ -217,18 +210,15 @@
       last_request &&
       new Date() - last_request < MIN_TIME_SINCE_LAST_REQUEST
     ) {
-      requestAnimationFrame(update_statuses);
       return;
     }
     last_request = new Date();
     const faction_ids = get_faction_ids();
     for (let i = 0; i < faction_ids.length; i++) {
       if (!update_status(faction_ids[i])) {
-        requestAnimationFrame(update_statuses);
         return;
       }
     }
-    requestAnimationFrame(update_statuses);
   }
 
   async function update_status(faction_id) {
@@ -469,6 +459,20 @@
     }
     requestAnimationFrame(watch);
   }
+
+  function settimeout_update_statuses() {
+    update_statuses();
+    setTimeout(() => {
+      settimeout_update_statuses();
+    }, 1000);
+  }
+  settimeout_update_statuses();
+
+  // Start the dom watcher
+  setTimeout(() => {
+    requestAnimationFrame(watch);
+  }, 1000);
+
   console.log("[TornWarStuffEnhanced] Initialized");
 
   window.dispatchEvent(new Event("FFScouterV2DisableWarMonitor"));
