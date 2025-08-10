@@ -116,7 +116,7 @@
 
   function get_faction_ids() {
     const nodes = get_member_lists();
-    faction_ids = [];
+    const faction_ids = [];
     nodes.forEach((elem) => {
       const id = elem
         .querySelector(`A[href^='/factions.php']`)
