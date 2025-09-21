@@ -20,6 +20,8 @@ function removeDarkStyling(node) {
       // TODO: Write a better color parser. Everything below a certain RGB value should be nulled
       if (elem.style.color == "rgb(51, 51, 51)") {
         elem.style.color = null;
+      } else if (elem.style.color == "rgb(34, 34, 34)") {
+        elem.style.color = null;
       } else if (elem.style.color == "var(--te-text-color-gray5)") {
         elem.style.color = null;
       } else if (elem.style.color == "rgb(0, 0, 0)") {
