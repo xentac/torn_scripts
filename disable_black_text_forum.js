@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         torn.com No dark text in forum
 // @namespace    xentac
-// @version      20250408.1
+// @version      20250923.1
 // @description  torn.com No Dark Text - Removes all dark text in the forum, so it's readable in dark mode
 // @author       xentac [3354782]
 // @match        *.torn.com/forums.php*
