@@ -2,7 +2,7 @@
 // @name         torn.com Remove all styling on torn.com
 // @namespace    xentac
 // @version      20251025.2
-// @description  torn.com So we can "make the page go faster"
+// @description  torn.com So we can
 // @author       xentac [3354782]
 // @match        https://www.torn.com/*
 // @license MIT
