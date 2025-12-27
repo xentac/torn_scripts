@@ -217,8 +217,12 @@
     ) {
       return;
     }
-    last_request = new Date();
     const faction_ids = get_faction_ids();
+    // If the faction ids are not yet available, give up and let us request again next time
+    if (faction_ids.length == 0) {
+      return;
+    }
+    last_request = new Date();
     for (let i = 0; i < faction_ids.length; i++) {
       if (!update_status(faction_ids[i])) {
         return;
