@@ -469,9 +469,11 @@
           }
         }
         if (!sorted) {
+          const fragment = document.createDocumentFragment();
           sorted_lis.forEach((li) => {
-            nodes[i].appendChild(li);
+            fragment.appendChild(li);
           });
+          nodes[i].appendChild(fragment);
         }
       }
     }
