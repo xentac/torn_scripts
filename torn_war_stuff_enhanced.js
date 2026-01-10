@@ -277,6 +277,8 @@
   let last_request = null;
   const MIN_TIME_SINCE_LAST_REQUEST = 10000;
 
+  const description_cache = new Map();
+
   async function update_statuses() {
     if (!running) {
       return;
@@ -341,12 +343,16 @@
       return false;
     }
     for (const [k, v] of Object.entries(status.members)) {
-      v.status.description = v.status.description
-        .replace("South Africa", "SA")
-        .replace("Cayman Islands", "CI")
-        .replace("United Kingdom", "UK")
-        .replace("Argentina", "Arg")
-        .replace("Switzerland", "Switz");
+      let d_cache = description_cache.get(v.status.description);
+      if (!d_cache) {
+        d_cache = v.status.description
+          .replace("South Africa", "SA")
+          .replace("Cayman Islands", "CI")
+          .replace("United Kingdom", "UK")
+          .replace("Argentina", "Arg")
+          .replace("Switzerland", "Switz");
+      }
+      v.status.description = d_cache;
       member_status.set(k, v.status);
     }
   }
