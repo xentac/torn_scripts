@@ -156,21 +156,21 @@
 
     let classname = "";
 
-    if (member_div.className.match(/activeIcon__/)) {
+    if (member_div && member_div.className.match(/activeIcon__/)) {
       column = "member";
       classname = member_div.className;
-    } else if (level_div.className.match(/activeIcon__/)) {
+    } else if (level_div && level_div.className.match(/activeIcon__/)) {
       column = "level";
       classname = level_div.className;
-    } else if (points_div.className.match(/activeIcon__/)) {
+    } else if (points_div && points_div.className.match(/activeIcon__/)) {
       column = "points";
       classname = points_div.className;
-    } else if (status_div.className.match(/activeIcon__/)) {
+    } else if (status_div && status_div.className.match(/activeIcon__/)) {
       column = "status";
       classname = status_div.className;
     }
 
-    if (classname.match(/asc__/)) {
+    if (classname && classname.match(/asc__/)) {
       order = "asc";
     } else {
       order = "desc";
