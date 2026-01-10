@@ -381,10 +381,11 @@
   }
 
   const TIME_BETWEEN_FRAMES = 500;
+  const deferredWrites = [];
 
   function watch() {
-    const deferredWrites = [];
     let dirtySort = false;
+    deferredWrites.length = 0;
     member_lis.forEach((elem, id) => {
       const li = elem.li.deref();
       if (!li) {
@@ -519,6 +520,7 @@
     for (const [elem, attrib, value] of deferredWrites) {
       elem.setAttribute(attrib, value);
     }
+    deferredWrites.length = 0;
     if (sort_enemies && dirtySort) {
       // Only sort if Status is the field to be sorted
       const nodes = get_member_lists();
