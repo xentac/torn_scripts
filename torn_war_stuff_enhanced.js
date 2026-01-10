@@ -114,13 +114,26 @@
   let running = true;
   let found_war = false;
 
+  let member_lists = document.querySelectorAll("ul.members-list");
+
+  const refresh_member_lists = () => {
+    member_lists = document.querySelectorAll("ul.members-list");
+  };
+
   function get_faction_ids() {
+    refresh_member_lists();
     const nodes = get_member_lists();
     const faction_ids = [];
     nodes.forEach((elem) => {
-      const id = elem
-        .querySelector(`A[href^='/factions.php']`)
-        .href.split("ID=")[1];
+      const q = elem.querySelector(`A[href^='/factions.php']`);
+      if (!q) {
+        return;
+      }
+      const s = q.href.split("ID=");
+      if (s.length <= 1) {
+        return;
+      }
+      const id = s[1];
       if (id) {
         faction_ids.push(id);
       }
@@ -129,7 +142,7 @@
   }
 
   function get_member_lists() {
-    return document.querySelectorAll("ul.members-list");
+    return member_lists;
   }
 
   function get_sorted_column(member_list) {
@@ -283,6 +296,7 @@
 
   function extract_all_member_lis() {
     member_lis.clear();
+    refresh_member_lists();
     get_member_lists().forEach((ul) => {
       extract_member_lis(ul);
     });
