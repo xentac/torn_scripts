@@ -113,6 +113,11 @@
 
   let running = true;
   let found_war = false;
+  let pageVisible = !document.hidden;
+
+  document.addEventListener("visibilitychange", () => {
+    pageVisible = !document.hidden;
+  });
 
   let member_lists = document.querySelectorAll("ul.members-list");
 
@@ -589,7 +594,7 @@
   }, MIN_TIME_SINCE_LAST_REQUEST);
 
   setInterval(() => {
-    if (!found_war || !running) {
+    if (!found_war || !running || !pageVisible) {
       return;
     }
 
