@@ -338,7 +338,7 @@
       }
       if (!state || !running) {
         // Make sure the user sees something before we've downloaded state
-        deferredWrites.push([status_DIV, CONTENT, status_DIV.innerText]);
+        deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
         return;
       }
       const status = state.status;
@@ -354,7 +354,7 @@
               status_DIV.classList.contains("abroad")
             )
           ) {
-            deferredWrites.push([status_DIV, CONTENT, status_DIV.innerText]);
+            deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
             break;
           }
           if (status.description.includes("Traveling to ")) {
@@ -388,7 +388,7 @@
               status_DIV.classList.contains("jail")
             )
           ) {
-            deferredWrites.push([status_DIV, CONTENT, status_DIV.innerText]);
+            deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
             deferredWrites.push([status_DIV, TRAVELING, "false"]);
             deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
             break;
@@ -426,7 +426,7 @@
           break;
 
         default:
-          deferredWrites.push([status_DIV, CONTENT, status_DIV.innerText]);
+          deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
           deferredWrites.push([li, "data-sortA", "0"]);
           deferredWrites.push([status_DIV, TRAVELING, "false"]);
           deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
