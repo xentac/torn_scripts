@@ -310,7 +310,10 @@
         return;
       }
       const id = atag.href.split("ID=")[1];
-      member_lis.set(id, { li: li, div: li.querySelector("DIV.status") });
+      member_lis.set(id, {
+        li: new WeakRef(li),
+        div: new WeakRef(li.querySelector("DIV.status")),
+      });
     });
   }
 
@@ -330,9 +333,12 @@
     last_frame = new Date();
     const deferredWrites = [];
     member_lis.forEach((elem, id) => {
-      const { li, div } = elem;
+      const li = elem.li.deref();
+      if (!li) {
+        return;
+      }
       const state = member_status.get(id);
-      const status_DIV = div;
+      const status_DIV = elem.div.deref();
       if (!status_DIV) {
         return;
       }
