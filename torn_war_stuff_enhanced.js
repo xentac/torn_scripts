@@ -201,6 +201,7 @@
           if (factwarlist.querySelector(".faction-war")) {
             found_war = true;
             extract_all_member_lis();
+            update_statuses();
           }
           console.log(
             "[TornWarStuffEnhanced] Found #faction_war_list_id, adding descriptions observer",
@@ -221,6 +222,7 @@
             console.log("[TornWarStuffEnhanced] .faction-war already exists");
             found_war = true;
             extract_all_member_lis();
+            update_statuses();
             faction_war_observer.disconnect();
           }
         }
@@ -262,6 +264,7 @@
           );
           found_war = true;
           extract_all_member_lis();
+          update_statuses();
           faction_war_observer.disconnect();
         }
       }
@@ -271,17 +274,10 @@
   const member_status = new Map();
   const member_lis = new Map();
 
-  let last_request = null;
-  const MIN_TIME_SINCE_LAST_REQUEST = 9000;
+  const MIN_TIME_SINCE_LAST_REQUEST = 10000;
 
   async function update_statuses() {
     if (!running) {
-      return;
-    }
-    if (
-      last_request &&
-      new Date() - last_request < MIN_TIME_SINCE_LAST_REQUEST
-    ) {
       return;
     }
     const faction_ids = get_faction_ids();
@@ -540,15 +536,17 @@
         }
       }
     }
+    for (const [id, ref] of member_lis) {
+      if (!ref.li.deref()) {
+        member_lis.delete(id);
+      }
+    }
   }
 
-  function settimeout_update_statuses() {
+  setInterval(() => {
+    if (!running || !found_war) return;
     update_statuses();
-    setTimeout(() => {
-      settimeout_update_statuses();
-    }, 1000);
-  }
-  settimeout_update_statuses();
+  }, MIN_TIME_SINCE_LAST_REQUEST);
 
   setInterval(() => {
     if (!found_war || !running) {
