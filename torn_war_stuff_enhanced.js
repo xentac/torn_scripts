@@ -448,7 +448,7 @@
         if (sorted_column["column"] != "status") {
           continue;
         }
-        let lis = nodes[i].querySelectorAll("LI.enemy, li.your");
+        let lis = nodes[i].childNodes;
         let sorted_lis = Array.from(lis).sort((a, b) => {
           let left = a;
           let right = b;
