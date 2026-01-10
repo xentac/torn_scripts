@@ -317,20 +317,9 @@
     });
   }
 
-  let last_frame = new Date();
   const TIME_BETWEEN_FRAMES = 500;
 
   function watch() {
-    if (!found_war) {
-      requestAnimationFrame(watch);
-      return;
-    }
-    // Update no more frequently than every 500ms
-    if (new Date() - last_frame < TIME_BETWEEN_FRAMES) {
-      requestAnimationFrame(watch);
-      return;
-    }
-    last_frame = new Date();
     const deferredWrites = [];
     member_lis.forEach((elem, id) => {
       const li = elem.li.deref();
@@ -497,7 +486,6 @@
         }
       }
     }
-    requestAnimationFrame(watch);
   }
 
   function settimeout_update_statuses() {
@@ -508,10 +496,13 @@
   }
   settimeout_update_statuses();
 
-  // Start the dom watcher
-  setTimeout(() => {
-    requestAnimationFrame(watch);
-  }, 1000);
+  setInterval(() => {
+    if (!found_war || !running) {
+      return;
+    }
+
+    watch();
+  }, TIME_BETWEEN_FRAMES);
 
   console.log("[TornWarStuffEnhanced] Initialized");
 
