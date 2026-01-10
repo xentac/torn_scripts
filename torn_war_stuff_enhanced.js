@@ -371,6 +371,7 @@
 
   function watch() {
     const deferredWrites = [];
+    let dirtySort = false;
     member_lis.forEach((elem, id) => {
       const li = elem.li.deref();
       if (!li) {
@@ -387,7 +388,10 @@
         return;
       }
 
-      deferredWrites.push([li, "data-until", status.until]);
+      if (li.getAttribute("data-until") != status.until) {
+        deferredWrites.push([li, "data-until", status.until]);
+        dirtySort = true;
+      }
       let data_location = "";
       switch (status.state) {
         case "Abroad":
@@ -402,23 +406,35 @@
             break;
           }
           if (status.description.includes("Traveling to ")) {
-            deferredWrites.push([li, "data-sortA", "4"]);
+            if (li.getAttribute("data-sortA") != "4") {
+              deferredWrites.push([li, "data-sortA", "4"]);
+              dirtySort = true;
+            }
             const content = "► " + status.description.split("Traveling to ")[1];
             data_location = content;
             deferredWrites.push([status_DIV, CONTENT, content]);
           } else if (status.description.includes("In ")) {
-            deferredWrites.push([li, "data-sortA", "3"]);
+            if (li.getAttribute("data-sortA") != "3") {
+              deferredWrites.push([li, "data-sortA", "3"]);
+              dirtySort = true;
+            }
             const content = status.description.split("In ")[1];
             data_location = content;
             deferredWrites.push([status_DIV, CONTENT, content]);
           } else if (status.description.includes("Returning")) {
-            deferredWrites.push([li, "data-sortA", "2"]);
+            if (li.getAttribute("data-sortA") != "2") {
+              deferredWrites.push([li, "data-sortA", "2"]);
+              dirtySort = true;
+            }
             const content =
               "◄ " + status.description.split("Returning to Torn from ")[1];
             data_location = content;
             deferredWrites.push([status_DIV, CONTENT, content]);
           } else if (status.description.includes("Traveling")) {
-            deferredWrites.push([li, "data-sortA", "5"]);
+            if (li.getAttribute("data-sortA") != "5") {
+              deferredWrites.push([li, "data-sortA", "5"]);
+              dirtySort = true;
+            }
             const content = "Traveling";
             data_location = content;
             deferredWrites.push([status_DIV, CONTENT, content]);
@@ -437,7 +453,10 @@
             deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
             break;
           }
-          deferredWrites.push([li, "data-sortA", "1"]);
+          if (li.getAttribute("data-sortA") != "1") {
+            deferredWrites.push([li, "data-sortA", "1"]);
+            dirtySort = true;
+          }
           if (status.description.includes("In a")) {
             deferredWrites.push([status_DIV, TRAVELING, "true"]);
           } else {
@@ -471,17 +490,23 @@
 
         default:
           deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
-          deferredWrites.push([li, "data-sortA", "0"]);
+          if (li.getAttribute("data-sortA") != "0") {
+            deferredWrites.push([li, "data-sortA", "0"]);
+            dirtySort = true;
+          }
           deferredWrites.push([status_DIV, TRAVELING, "false"]);
           deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
           break;
       }
-      deferredWrites.push([li, "data-location", data_location]);
+      if (li.getAttribute("data-location") != data_location) {
+        deferredWrites.push([li, "data-location", data_location]);
+        dirtySort = true;
+      }
     });
     for (const [elem, attrib, value] of deferredWrites) {
       elem.setAttribute(attrib, value);
     }
-    if (sort_enemies) {
+    if (sort_enemies && dirtySort) {
       // Only sort if Status is the field to be sorted
       const nodes = get_member_lists();
       for (let i = 0; i < nodes.length; i++) {
