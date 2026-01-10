@@ -274,6 +274,7 @@
   const member_status = new Map();
   const member_lis = new Map();
 
+  let last_request = null;
   const MIN_TIME_SINCE_LAST_REQUEST = 10000;
 
   async function update_statuses() {
@@ -283,6 +284,12 @@
     const faction_ids = get_faction_ids();
     // If the faction ids are not yet available, give up and let us request again next time
     if (faction_ids.length == 0) {
+      return;
+    }
+    if (
+      last_request &&
+      new Date() - last_request < MIN_TIME_SINCE_LAST_REQUEST
+    ) {
       return;
     }
     last_request = new Date();
