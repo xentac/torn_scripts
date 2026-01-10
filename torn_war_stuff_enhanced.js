@@ -290,7 +290,7 @@
         .replace("United Kingdom", "UK")
         .replace("Argentina", "Arg")
         .replace("Switzerland", "Switz");
-      member_status.set(k, v);
+      member_status.set(k, v.status);
     }
   }
 
@@ -337,17 +337,16 @@
       if (!li) {
         return;
       }
-      const state = member_status.get(id);
+      const status = member_status.get(id);
       const status_DIV = elem.div.deref();
       if (!status_DIV) {
         return;
       }
-      if (!state || !running) {
+      if (!status || !running) {
         // Make sure the user sees something before we've downloaded state
         deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
         return;
       }
-      const status = state.status;
 
       deferredWrites.push([li, "data-until", status.until]);
       let data_location = "";
