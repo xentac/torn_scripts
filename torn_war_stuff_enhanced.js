@@ -374,8 +374,8 @@
       }
       const id = atag.href.split("ID=")[1];
       member_lis.set(id, {
-        li: new WeakRef(li),
-        div: new WeakRef(li.querySelector("DIV.status")),
+        li: li,
+        div: li.querySelector("DIV.status"),
       });
     });
   }
@@ -387,12 +387,12 @@
     let dirtySort = false;
     deferredWrites.length = 0;
     member_lis.forEach((elem, id) => {
-      const li = elem.li.deref();
+      const li = elem.li;
       if (!li) {
         return;
       }
       const status = member_status.get(id);
-      const status_DIV = elem.div.deref();
+      const status_DIV = elem.div;
       if (!status_DIV) {
         return;
       }
@@ -577,7 +577,7 @@
       }
     }
     for (const [id, ref] of member_lis) {
-      if (!ref.li.deref()) {
+      if (!ref.li.isConnected) {
         member_lis.delete(id);
       }
     }
