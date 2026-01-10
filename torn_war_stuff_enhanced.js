@@ -310,7 +310,7 @@
         return;
       }
       const id = atag.href.split("ID=")[1];
-      member_lis.set(id, li);
+      member_lis.set(id, { li: li, div: li.querySelector("DIV.status") });
     });
   }
 
@@ -329,9 +329,10 @@
     }
     last_frame = new Date();
     const deferredWrites = [];
-    member_lis.forEach((li, id) => {
+    member_lis.forEach((elem, id) => {
+      const { li, div } = elem;
       const state = member_status.get(id);
-      const status_DIV = li.querySelector("DIV.status");
+      const status_DIV = div;
       if (!status_DIV) {
         return;
       }
