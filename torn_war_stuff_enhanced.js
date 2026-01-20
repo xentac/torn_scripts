@@ -464,12 +464,14 @@
               status_DIV.classList.contains("abroad")
             )
           ) {
-            if (li.getAttribute("data-sortA") != "0") {
-              deferredWrites.push([li, "data-sortA", "0"]);
-              dirtySort = true;
+            if (status_DIV.textContent == "Okay") {
+              if (li.getAttribute("data-sortA") != "0") {
+                deferredWrites.push([li, "data-sortA", "0"]);
+                dirtySort = true;
+              }
+              deferredWrites.push([status_DIV, STATUS_DIFFERS, "true"]);
             }
             deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
-            deferredWrites.push([status_DIV, STATUS_DIFFERS, "true"]);
             break;
           }
           deferredWrites.push([status_DIV, STATUS_DIFFERS, "false"]);
