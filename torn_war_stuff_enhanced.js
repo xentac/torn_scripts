@@ -33,6 +33,7 @@
   const CONTENT = "data-twse-content";
   const TRAVELING = "data-twse-traveling";
   const HIGHLIGHT = "data-twse-highlight";
+  const STATUS_DIFFERS = "data-twse-status-differs";
 
   try {
     GM_registerMenuCommand("Set Api Key", function () {
@@ -69,13 +70,23 @@
 
   GM_addStyle(`
 .members-list li:has(div.status[data-twse-highlight="true"]) {
-  background-color: #afa5 !important;
+  background-color: #99EB99 !important;
 }
-`);
-
-  GM_addStyle(`
+.members-list li:has(div.status[data-twse-status-differs="true"]) {
+  background-color: #C4974C !important;
+}
 .members-list div.status[data-twse-traveling="true"]::after {
-  color: #F287FF !important;
+  color: #696026 !important;
+}
+
+:root .dark-mode .members-list li:has(div.status[data-twse-highlight="true"]) {
+  background-color: #446944 !important;
+}
+:root .dark-mode .members-list li:has(div.status[data-twse-status-differs="true"]) {
+  background-color: #795315 !important;
+}
+:root .dark-mode .members-list div.status[data-twse-traveling="true"]::after {
+  color: #FFED76 !important;
 }
 `);
 
@@ -100,7 +111,6 @@
 .members-list .ok.status::after {
     color: var(--user-status-green-color);
 }
-
 
 .members-list .not-ok.status::after {
     color: var(--user-status-red-color);
@@ -447,34 +457,41 @@
       switch (status.state) {
         case "Abroad":
         case "Traveling":
+          // API says they're traveling but site has updated. Trust the site and sort them to the top.
           if (
             !(
               status_DIV.classList.contains("traveling") ||
               status_DIV.classList.contains("abroad")
             )
           ) {
+            if (li.getAttribute("data-sortA") != "0") {
+              deferredWrites.push([li, "data-sortA", "0"]);
+              dirtySort = true;
+            }
             deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
+            deferredWrites.push([status_DIV, STATUS_DIFFERS, "true"]);
             break;
           }
+          deferredWrites.push([status_DIV, STATUS_DIFFERS, "false"]);
           if (status.description.includes("Traveling to ")) {
-            if (li.getAttribute("data-sortA") != "4") {
-              deferredWrites.push([li, "data-sortA", "4"]);
+            if (li.getAttribute("data-sortA") != "5") {
+              deferredWrites.push([li, "data-sortA", "5"]);
               dirtySort = true;
             }
             const content = "► " + status.description.split("Traveling to ")[1];
             data_location = content;
             deferredWrites.push([status_DIV, CONTENT, content]);
           } else if (status.description.includes("In ")) {
-            if (li.getAttribute("data-sortA") != "3") {
-              deferredWrites.push([li, "data-sortA", "3"]);
+            if (li.getAttribute("data-sortA") != "4") {
+              deferredWrites.push([li, "data-sortA", "4"]);
               dirtySort = true;
             }
             const content = status.description.split("In ")[1];
             data_location = content;
             deferredWrites.push([status_DIV, CONTENT, content]);
           } else if (status.description.includes("Returning")) {
-            if (li.getAttribute("data-sortA") != "2") {
-              deferredWrites.push([li, "data-sortA", "2"]);
+            if (li.getAttribute("data-sortA") != "3") {
+              deferredWrites.push([li, "data-sortA", "3"]);
               dirtySort = true;
             }
             const content =
@@ -482,8 +499,8 @@
             data_location = content;
             deferredWrites.push([status_DIV, CONTENT, content]);
           } else if (status.description.includes("Traveling")) {
-            if (li.getAttribute("data-sortA") != "5") {
-              deferredWrites.push([li, "data-sortA", "5"]);
+            if (li.getAttribute("data-sortA") != "6") {
+              deferredWrites.push([li, "data-sortA", "6"]);
               dirtySort = true;
             }
             const content = "Traveling";
@@ -499,13 +516,19 @@
               status_DIV.classList.contains("jail")
             )
           ) {
+            if (li.getAttribute("data-sortA") != "0") {
+              deferredWrites.push([li, "data-sortA", "0"]);
+              dirtySort = true;
+            }
             deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
             deferredWrites.push([status_DIV, TRAVELING, "false"]);
             deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
+            deferredWrites.push([status_DIV, STATUS_DIFFERS, "true"]);
             break;
           }
-          if (li.getAttribute("data-sortA") != "1") {
-            deferredWrites.push([li, "data-sortA", "1"]);
+          deferredWrites.push([status_DIV, STATUS_DIFFERS, "false"]);
+          if (li.getAttribute("data-sortA") != "2") {
+            deferredWrites.push([li, "data-sortA", "2"]);
             dirtySort = true;
           }
           if (status.description.includes("In a")) {
@@ -541,12 +564,13 @@
 
         default:
           deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
-          if (li.getAttribute("data-sortA") != "0") {
-            deferredWrites.push([li, "data-sortA", "0"]);
+          if (li.getAttribute("data-sortA") != "1") {
+            deferredWrites.push([li, "data-sortA", "1"]);
             dirtySort = true;
           }
           deferredWrites.push([status_DIV, TRAVELING, "false"]);
           deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
+          deferredWrites.push([status_DIV, STATUS_DIFFERS, "false"]);
           break;
       }
       if (li.getAttribute("data-location") != data_location) {
