@@ -510,20 +510,30 @@
           break;
         case "Hospital":
         case "Jail":
+          let now = new Date().getTime() / 1000;
+          if (window.getCurrentTimestamp) {
+            now = window.getCurrentTimestamp() / 1000;
+          }
+          const hosp_time_remaining = Math.round(status.until - now);
           if (
             !(
               status_DIV.classList.contains("hospital") ||
               status_DIV.classList.contains("jail")
             )
           ) {
-            if (li.getAttribute("data-sortA") != "0") {
-              deferredWrites.push([li, "data-sortA", "0"]);
-              dirtySort = true;
+            // Catch the natural but special case where someone meds out.
+            // Our API knowledge will be that they still have hospital time
+            // but they will be Okay.
+            if (hosp_time_remaining >= 0) {
+              if (li.getAttribute("data-sortA") != "0") {
+                deferredWrites.push([li, "data-sortA", "0"]);
+                dirtySort = true;
+              }
+              deferredWrites.push([status_DIV, STATUS_DIFFERS, "true"]);
             }
             deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
             deferredWrites.push([status_DIV, TRAVELING, "false"]);
             deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
-            deferredWrites.push([status_DIV, STATUS_DIFFERS, "true"]);
             break;
           }
           deferredWrites.push([status_DIV, STATUS_DIFFERS, "false"]);
@@ -537,11 +547,6 @@
             deferredWrites.push([status_DIV, TRAVELING, "false"]);
           }
 
-          let now = new Date().getTime() / 1000;
-          if (window.getCurrentTimestamp) {
-            now = window.getCurrentTimestamp() / 1000;
-          }
-          const hosp_time_remaining = Math.round(status.until - now);
           if (hosp_time_remaining <= 0) {
             deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
             return;
