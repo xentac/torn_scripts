@@ -30,7 +30,6 @@
     "###PDA-APIKEY###";
   const sort_enemies = true;
   let ever_sorted = false;
-  const CONTENT = "data-twse-content";
   const TRAVELING = "data-twse-traveling";
   const HIGHLIGHT = "data-twse-highlight";
   const STATUS_DIFFERS = "data-twse-status-differs";
@@ -96,7 +95,7 @@
   color: transparent !important;
 }
 .members-list div.status::after {
-  content: attr(data-twse-content);
+  content: var(--twse-content);
   position: absolute;
   top: 0;
   left: 0;
@@ -445,7 +444,10 @@
       }
       if (!status || !running) {
         // Make sure the user sees something before we've downloaded state
-        deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
+        status_DIV.style.setProperty(
+          "--twse-content",
+          `"${status_DIV.textContent}"`,
+        );
         return;
       }
 
@@ -471,7 +473,10 @@
               }
               deferredWrites.push([status_DIV, STATUS_DIFFERS, "true"]);
             }
-            deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
+            status_DIV.style.setProperty(
+              "--twse-content",
+              `"${status_DIV.textContent}"`,
+            );
             break;
           }
           deferredWrites.push([status_DIV, STATUS_DIFFERS, "false"]);
@@ -482,7 +487,7 @@
             }
             const content = "► " + status.description.split("Traveling to ")[1];
             data_location = content;
-            deferredWrites.push([status_DIV, CONTENT, content]);
+            status_DIV.style.setProperty("--twse-content", `"${content}"`);
           } else if (status.description.includes("In ")) {
             if (li.getAttribute("data-sortA") != "4") {
               deferredWrites.push([li, "data-sortA", "4"]);
@@ -490,7 +495,7 @@
             }
             const content = status.description.split("In ")[1];
             data_location = content;
-            deferredWrites.push([status_DIV, CONTENT, content]);
+            status_DIV.style.setProperty("--twse-content", `"${content}"`);
           } else if (status.description.includes("Returning")) {
             if (li.getAttribute("data-sortA") != "3") {
               deferredWrites.push([li, "data-sortA", "3"]);
@@ -499,7 +504,7 @@
             const content =
               "◄ " + status.description.split("Returning to Torn from ")[1];
             data_location = content;
-            deferredWrites.push([status_DIV, CONTENT, content]);
+            status_DIV.style.setProperty("--twse-content", `"${content}"`);
           } else if (status.description.includes("Traveling")) {
             if (li.getAttribute("data-sortA") != "6") {
               deferredWrites.push([li, "data-sortA", "6"]);
@@ -507,7 +512,7 @@
             }
             const content = "Traveling";
             data_location = content;
-            deferredWrites.push([status_DIV, CONTENT, content]);
+            status_DIV.style.setProperty("--twse-content", `"${content}"`);
           }
           break;
         case "Hospital":
@@ -533,7 +538,10 @@
               }
               deferredWrites.push([status_DIV, STATUS_DIFFERS, "true"]);
             }
-            deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
+            status_DIV.style.setProperty(
+              "--twse-content",
+              `"${status_DIV.textContent}"`,
+            );
             deferredWrites.push([status_DIV, TRAVELING, "false"]);
             deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
             break;
@@ -558,9 +566,7 @@
           const h = Math.floor(hosp_time_remaining / 60 / 60);
           const time_string = `${pad_with_zeros(h)}:${pad_with_zeros(m)}:${pad_with_zeros(s)}`;
 
-          if (status_DIV.getAttribute(CONTENT) != time_string) {
-            deferredWrites.push([status_DIV, CONTENT, time_string]);
-          }
+          status_DIV.style.setProperty("--twse-content", `"${time_string}"`);
 
           if (hosp_time_remaining < 300) {
             deferredWrites.push([status_DIV, HIGHLIGHT, "true"]);
@@ -570,7 +576,10 @@
           break;
 
         default:
-          deferredWrites.push([status_DIV, CONTENT, status_DIV.textContent]);
+          status_DIV.style.setProperty(
+            "--twse-content",
+            `"${status_DIV.textContent}"`,
+          );
           if (li.getAttribute("data-sortA") != "1") {
             deferredWrites.push([li, "data-sortA", "1"]);
             dirtySort = true;
