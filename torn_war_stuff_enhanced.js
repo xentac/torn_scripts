@@ -243,6 +243,10 @@
       );
       found_war = true;
       extract_all_member_lis();
+      for (const faction_id of get_faction_ids()) {
+        // If we have a cached value for the members, pre-populate them
+        populate_cached_status(faction_id);
+      }
       update_statuses();
       faction_war_observer.disconnect();
     }
@@ -262,6 +266,10 @@
       console.log("[TornWarStuffEnhanced] .faction-war already exists");
       found_war = true;
       extract_all_member_lis();
+      for (const faction_id of get_faction_ids()) {
+        // If we have a cached value for the members, pre-populate them
+        populate_cached_status(faction_id);
+      }
       update_statuses();
       return;
     }
@@ -324,6 +332,71 @@
     }
     document_observer.disconnect();
   }, 10000);
+
+  function cache_status(faction_id, status) {
+    localStorage.setItem(
+      `xentac-torn_war_stuff_enhanced-status-${faction_id}`,
+      JSON.stringify({ timestamp: new Date().getTime(), status: status }),
+    );
+  }
+
+  function populate_cached_status(faction_id) {
+    const status = get_cached_status(faction_id);
+    if (!status) {
+      return;
+    }
+
+    for (const [k, v] of Object.entries(status)) {
+      member_status.set(k, v);
+    }
+    console.log(
+      "[TornWarStuffEnhanced] Populated member_status with previously cached values",
+    );
+  }
+
+  function get_cached_status(faction_id) {
+    const cache = localStorage.getItem(
+      `xentac-torn_war_stuff_enhanced-status-${faction_id}`,
+    );
+    if (!cache) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(cache);
+      const now = new Date().getTime();
+      if (parsed && now - parsed.timestamp > MIN_TIME_SINCE_LAST_REQUEST) {
+        return null;
+      }
+
+      return parsed.status;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function clean_cached_statuses() {
+    const now = new Date().getTime();
+    let cleaned_count = 0;
+    Object.keys(localStorage).forEach((key) => {
+      if (!key.startsWith("xentac-torn_war_stuff_enhanced-status-")) {
+        return;
+      }
+      const value = localStorage.getItem(key);
+      try {
+        const parsed = JSON.parse(value);
+        if (now - parsed.timestamp > MIN_TIME_SINCE_LAST_REQUEST) {
+          localStorage.removeItem(key);
+          cleaned_count++;
+        }
+      } catch (e) {
+        localStorage.removeItem(key);
+        cleaned_count++;
+      }
+    });
+    console.log(
+      `[TornWarStuffEnhanced] Cleaned ${cleaned_count} expired cached values`,
+    );
+  }
 
   async function update_statuses() {
     if (!running) {
@@ -389,6 +462,7 @@
       return false;
     }
     const req_time = Date.now();
+    const faction_status = {};
     for (const [k, v] of Object.entries(status.members)) {
       const status = v.status;
       status.last_req_time = req_time;
@@ -425,7 +499,9 @@
       }
 
       member_status.set(k, status);
+      faction_status[k] = status;
     }
+    cache_status(faction_id, faction_status);
   }
 
   function extract_all_member_lis() {
@@ -709,6 +785,8 @@
   }, TIME_BETWEEN_FRAMES);
 
   console.log("[TornWarStuffEnhanced] Initialized");
+
+  clean_cached_statuses();
 
   window.dispatchEvent(new Event("FFScouterV2DisableWarMonitor"));
 })();
