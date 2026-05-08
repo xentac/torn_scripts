@@ -552,6 +552,21 @@
   const TIME_BETWEEN_FRAMES = 500;
   const deferredWrites = [];
 
+  const traveling_regex = /Traveling from ([\S ]+) to ([\S ]+)/;
+
+  function extract_destinations_from_description(description) {
+    if (!description.startsWith("Traveling from")) {
+      return null;
+    }
+
+    const match = traveling_regex.exec(description);
+    if (!match) {
+      return null;
+    }
+
+    return { from: match[1], to: match[2] };
+  }
+
   function watch() {
     let dirtySort = false;
     deferredWrites.length = 0;
@@ -603,23 +618,28 @@
             status.traveling_error_bar,
           ]);
           deferredWrites.push([status_DIV, STATUS_DIFFERS, "false"]);
-          if (status.description.includes("Traveling to ")) {
-            dirtySort = queue_sort(deferredWrites, li, 5, dirtySort);
-            const content = "► " + status.description.split("Traveling to ")[1];
-            data_location = content;
-            status_DIV.style.setProperty("--twse-content", `"${content}"`);
-          } else if (status.description.includes("In ")) {
+          if (status.description.includes("In ")) {
             dirtySort = queue_sort(deferredWrites, li, 4, dirtySort);
             const content = status.description.split("In ")[1];
             data_location = content;
             status_DIV.style.setProperty("--twse-content", `"${content}"`);
-          } else if (status.description.includes("Returning")) {
-            dirtySort = queue_sort(deferredWrites, li, 3, dirtySort);
-            const content =
-              "◄ " + status.description.split("Returning to Torn from ")[1];
+            break;
+          }
+
+          const location = extract_destinations_from_description(
+            status.description,
+          );
+          if (location?.from == "Torn") {
+            dirtySort = queue_sort(deferredWrites, li, 5, dirtySort);
+            const content = "► " + location.to;
             data_location = content;
             status_DIV.style.setProperty("--twse-content", `"${content}"`);
-          } else if (status.description.includes("Traveling")) {
+          } else if (location?.to == "Torn") {
+            dirtySort = queue_sort(deferredWrites, li, 3, dirtySort);
+            const content = "◄ " + location.from;
+            data_location = content;
+            status_DIV.style.setProperty("--twse-content", `"${content}"`);
+          } else {
             dirtySort = queue_sort(deferredWrites, li, 6, dirtySort);
             const content = "Traveling";
             data_location = content;
