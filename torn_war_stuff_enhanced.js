@@ -30,6 +30,7 @@
     "###PDA-APIKEY###";
   const sort_enemies = true;
   let ever_sorted = false;
+  let ffscouter_sorting_deferred = false;
   const TRAVELING = "data-twse-traveling";
   const HIGHLIGHT = "data-twse-highlight";
   const STATUS_DIFFERS = "data-twse-status-differs";
@@ -720,6 +721,16 @@
       elem.setAttribute(attrib, value);
     }
     deferredWrites.length = 0;
+    // If ff scouter sorted our stuff but is no longer, then we should force a sort
+    if (ffscouter_sorting_deferred) {
+      const nodes = get_member_lists();
+      for (let i = 0; i < nodes.length; i++) {
+        if (nodes[i].getAttribute("data-ffscouter-active-filter") !== "true") {
+          dirtySort = true;
+          continue;
+        }
+      }
+    }
     if (sort_enemies && dirtySort) {
       // Only sort if Status is the field to be sorted
       const nodes = get_member_lists();
@@ -727,6 +738,11 @@
         let sorted_column = get_sorted_column(nodes[i]);
         if (!ever_sorted) {
           sorted_column = { column: "status", order: "asc" };
+        }
+        // If FF Scouter is sorting, don't bother sorting ourselves:
+        if (nodes[i].getAttribute("data-ffscouter-active-filter") === "true") {
+          ffscouter_sorting_deferred = true;
+          continue;
         }
         if (sorted_column["column"] != "status") {
           continue;
