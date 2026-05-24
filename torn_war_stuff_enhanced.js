@@ -211,8 +211,6 @@
   let last_request = null;
   const MIN_TIME_SINCE_LAST_REQUEST = 10000;
 
-  const description_cache = new Map();
-
   const descriptions_observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
@@ -467,16 +465,6 @@
     for (const [k, v] of Object.entries(status.members)) {
       const status = v.status;
       status.last_req_time = req_time;
-      let d_cache = description_cache.get(status.description);
-      if (!d_cache) {
-        d_cache = status.description
-          .replace("South Africa", "SA")
-          .replace("Cayman Islands", "CI")
-          .replace("United Kingdom", "UK")
-          .replace("Argentina", "Arg")
-          .replace("Switzerland", "Switz");
-      }
-      status.description = d_cache;
 
       const prev = member_status.get(k);
       const prev_state = prev?.state ?? "Unknown";
@@ -565,7 +553,70 @@
       return null;
     }
 
-    return { from: match[1], to: match[2] };
+    return {
+      from: shorten_destination(match[1]),
+      to: shorten_destination(match[2]),
+    };
+  }
+
+  const DEST_TABLE = new Map([
+    ["mexico", "MX"],
+    ["cayman islands", "CI"],
+    ["canada", "CA"],
+    ["hawaii", "HI"],
+    ["united kingdom", "UK"],
+    ["argentina", "AR"],
+    ["switzerland", "SW"],
+    ["japan", "JP"],
+    ["china", "CN"],
+    ["uae", "UAE"],
+    ["south africa", "SA"],
+    ["torn", "TC"],
+  ]);
+
+  function shorten_destination(dest) {
+    return DEST_TABLE.get(dest.toLowerCase().trim(), dest);
+  }
+
+  function calc_delta(delta, include_seconds = true, pad_hour = true) {
+    const s = Math.floor(delta % 60);
+    const m = Math.floor((delta / 60) % 60);
+    const h = Math.floor(delta / 60 / 60);
+    const hour_minute = `${pad_hour ? pad_with_zeros(h) : h}:${pad_with_zeros(m)}`;
+
+    return hour_minute + (include_seconds ? `:${pad_with_zeros(s)}` : "");
+  }
+
+  function calculate_flight_time_remaining(li) {
+    const earliest_arrival = li.getAttribute("data-earliest-arrival");
+    const earliest_arrival_int = parseInt(earliest_arrival, 10);
+    const latest_arrival = li.getAttribute("data-latest-arrival");
+    const latest_arrival_int = parseInt(latest_arrival, 10);
+    let flight_tracked = "";
+    let flight_time_remaining_earliest = null;
+    let flight_time_remaining_latest = null;
+    if (
+      !Number.isNaN(earliest_arrival_int) ||
+      !Number.isNaN(latest_arrival_int)
+    ) {
+      let now = new Date().getTime() / 1000;
+      if (window.getCurrentTimestamp) {
+        now = window.getCurrentTimestamp() / 1000;
+      }
+
+      if (!Number.isNaN(earliest_arrival_int)) {
+        flight_time_remaining_earliest = Math.round(earliest_arrival_int - now);
+      }
+      if (!Number.isNaN(latest_arrival_int)) {
+        flight_time_remaining_latest = Math.round(latest_arrival_int - now);
+      }
+      if (flight_time_remaining_earliest > 0) {
+        flight_tracked = ` ${calc_delta(flight_time_remaining_earliest, false, false)}`;
+      } else if (flight_time_remaining_latest > 0) {
+        flight_tracked = ` L${calc_delta(flight_time_remaining_latest, false, false)}`;
+      }
+    }
+    return flight_tracked;
   }
 
   function watch() {
@@ -621,7 +672,9 @@
           deferredWrites.push([status_DIV, STATUS_DIFFERS, "false"]);
           if (status.description.includes("In ")) {
             dirtySort = queue_sort(deferredWrites, li, 4, dirtySort);
-            const content = status.description.split("In ")[1];
+            const content = shorten_destination(
+              status.description.split("In ")[1],
+            );
             data_location = content;
             status_DIV.style.setProperty("--twse-content", `"${content}"`);
             break;
@@ -630,16 +683,24 @@
           const location = extract_destinations_from_description(
             status.description,
           );
-          if (location?.from == "Torn") {
+          if (location?.from == "TC") {
             dirtySort = queue_sort(deferredWrites, li, 5, dirtySort);
             const content = "► " + location.to;
             data_location = content;
-            status_DIV.style.setProperty("--twse-content", `"${content}"`);
-          } else if (location?.to == "Torn") {
+            const flight_tracked = calculate_flight_time_remaining(li);
+            status_DIV.style.setProperty(
+              "--twse-content",
+              `"${content}${flight_tracked}"`,
+            );
+          } else if (location?.to == "TC") {
             dirtySort = queue_sort(deferredWrites, li, 3, dirtySort);
             const content = "◄ " + location.from;
             data_location = content;
-            status_DIV.style.setProperty("--twse-content", `"${content}"`);
+            const flight_tracked = calculate_flight_time_remaining(li);
+            status_DIV.style.setProperty(
+              "--twse-content",
+              `"${content}${flight_tracked}"`,
+            );
           } else {
             dirtySort = queue_sort(deferredWrites, li, 6, dirtySort);
             const content = "Traveling";
@@ -687,10 +748,7 @@
             deferredWrites.push([status_DIV, HIGHLIGHT, "false"]);
             return;
           }
-          const s = Math.floor(hosp_time_remaining % 60);
-          const m = Math.floor((hosp_time_remaining / 60) % 60);
-          const h = Math.floor(hosp_time_remaining / 60 / 60);
-          const time_string = `${pad_with_zeros(h)}:${pad_with_zeros(m)}:${pad_with_zeros(s)}`;
+          const time_string = calc_delta(hosp_time_remaining);
 
           status_DIV.style.setProperty("--twse-content", `"${time_string}"`);
 
