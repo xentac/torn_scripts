@@ -613,7 +613,9 @@
       if (flight_time_remaining_earliest > 0) {
         flight_tracked = ` ${calc_delta(flight_time_remaining_earliest, false, false)}`;
       } else if (flight_time_remaining_latest > 0) {
-        flight_tracked = ` L${calc_delta(flight_time_remaining_latest, false, false)}`;
+        flight_tracked = ` <${calc_delta(flight_time_remaining_latest, false, false)}`;
+      } else {
+        flight_tracked = ` LATE`;
       }
     }
     return flight_tracked;
